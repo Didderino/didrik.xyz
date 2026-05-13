@@ -345,17 +345,48 @@ function useClock() {
   return now;
 }
 
-// Top-right pill: date + 24-hour clock. Dimmed (along with the XMB) when a
-// content panel is open.
+// Tiny analog clock for the status bar. Same monoline aesthetic as the rest of
+// the icon set. Hands are drawn with simple trig — hour hand sweeps 1/12 of
+// the way around for every hour (plus the fractional offset from minutes),
+// minute hand sweeps 1/60 per minute.
+function AnalogClock({ size = 16, hour, minute }) {
+  const hourDeg   = ((hour % 12) + minute / 60) * 30;
+  const minuteDeg = minute * 6;
+  const polar = (deg, r) => {
+    const rad = (deg - 90) * Math.PI / 180;
+    return { x: 12 + r * Math.cos(rad), y: 12 + r * Math.sin(rad) };
+  };
+  const h = polar(hourDeg, 4.2);
+  const m = polar(minuteDeg, 6.6);
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      aria-hidden="true"
+      className="sb-clock"
+    >
+      <circle cx="12" cy="12" r="9.5" strokeWidth="1.2" />
+      <line x1="12" y1="12" x2={h.x} y2={h.y} strokeWidth="1.6" />
+      <line x1="12" y1="12" x2={m.x} y2={m.y} strokeWidth="1.1" />
+      <circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+// Top-right pill: analog clock + date + 24-hour time. Dims (along with the
+// XMB) when a content panel is open.
 function StatusBar({ open }) {
   const now = useClock();
   const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
   const date = `${now.getDate()}/${now.getMonth() + 1}`;
   return (
     <div className={`statusbar ${open ? "is-dim" : ""}`}>
-      <span className="sb-date">{date}</span>
-      <span className="sb-sep" aria-hidden="true">·</span>
-      <span className="sb-time">{time}</span>
+      <AnalogClock hour={now.getHours()} minute={now.getMinutes()} />
+      <span className="sb-datetime">{date} {time}</span>
     </div>
   );
 }
