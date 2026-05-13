@@ -825,103 +825,69 @@ html, body, #root {
 }
 .cp-body .film-scan-link:hover .film-scan { opacity: 0.85; transform: scale(1.02); }
 
-/* ═══ NOW PLAYING CHIP ═══
-   Persistent top-right pill that shows what's playing on Spotify. Click jumps
-   to the Sounds → Now Playing panel. Fades in after the splash boot completes
-   and dims when a content panel is open. */
+/* ═══ STATUS BAR ═══
+   Top-right pill showing date + 24-hour clock. Fades in after the splash. */
 
-.np-chip {
-  appearance: none;
+.statusbar {
   position: absolute;
   top: 28px;
   right: 36px;
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 5px 14px 5px 5px;
-  max-width: 280px;
-  background: rgba(20, 17, 32, 0.68);
+  gap: 12px;
+  padding: 7px 16px;
   border: 1px solid var(--ink-20);
-  border-radius: var(--r-pill);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  color: var(--ink-80);
-  cursor: pointer;
-  font: inherit;
-  opacity: 0;
-  transform: translateY(-4px);
-  animation: chipIn 600ms var(--ease-out) 200ms forwards;
-  transition: background var(--dur-quick) var(--ease-out),
-              opacity var(--dur-med) ease,
-              transform var(--dur-quick) var(--ease-out);
-}
-.np-chip:hover { background: rgba(20, 17, 32, 0.86); }
-.np-chip.is-dim { opacity: 0.18 !important; pointer-events: none; }
-@keyframes chipIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.np-chip-art {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-.np-chip-text {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  line-height: 1.15;
-}
-.np-chip-row { display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
-.np-chip-title {
+  border-radius: var(--r-md);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   font-size: var(--t-sm);
-  color: var(--ink-100);
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
+  color: var(--ink-80);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  opacity: 0;
+  transition: opacity var(--dur-med) ease;
 }
-.np-chip-artist {
-  font-size: 10px;
-  color: var(--ink-40);
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 220px;
-  margin-top: 2px;
-}
-/* Status dot — grey when paused/recent, green pulse when actively playing */
-.np-chip-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--ink-40);
-  flex-shrink: 0;
-}
-.np-chip-dot.is-live {
-  background: #1db954;
-  box-shadow: 0 0 6px rgba(29, 185, 84, 0.55);
-  animation: chipPulse 2s ease-in-out infinite;
-}
-@keyframes chipPulse {
-  0%, 100% { opacity: 1;   transform: scale(1); }
-  50%      { opacity: 0.55; transform: scale(0.88); }
-}
+.root.is-booted .statusbar { opacity: 1; transition: opacity 700ms ease 200ms; }
+.statusbar.is-dim { opacity: 0.18; pointer-events: none; }
+.statusbar .sb-sep { opacity: 0.4; }
+.statusbar .sb-time { color: var(--ink-100); }
 
 @media (max-width: 600px) {
-  .np-chip { top: 16px; right: 16px; padding: 4px 12px 4px 4px; max-width: 200px; }
-  .np-chip-art { width: 24px; height: 24px; }
-  .np-chip-title { max-width: 140px; font-size: 11px; }
-  .np-chip-artist { max-width: 140px; font-size: 9px; }
+  .statusbar { top: 16px; right: 16px; padding: 5px 12px; gap: 9px; font-size: 10.5px; }
+}
+
+/* ═══ NOW PLAYING — inline XMB item ═══
+   The "Now Playing" item under Sounds renders the live album art in place of
+   the music-note icon. A green dot in the corner of the art means actively
+   playing right now (vs. last-played). */
+
+.np-item-icon { position: relative; }
+.np-item-art {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--r-xs);
+  object-fit: cover;
+  display: block;
+  /* Match the icon glow on hover/active states */
+  transition: box-shadow var(--dur-quick) var(--ease-out);
+}
+.xmb-item.is-active .np-item-art { box-shadow: 0 0 8px rgba(255, 255, 255, 0.35); }
+.np-item-dot {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1db954;
+  box-shadow: 0 0 0 2px rgba(20, 17, 32, 0.9), 0 0 6px rgba(29, 185, 84, 0.6);
+  animation: npPulse 2s ease-in-out infinite;
+}
+@keyframes npPulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(0.85); }
 }
 
 /* ═══ NOW PLAYING (Sounds) ═══

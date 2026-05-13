@@ -335,6 +335,31 @@ function ParticleField({ wave }) {
   );
 }
 
+// ---------- CLOCK ----------
+function useClock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 15 * 1000);
+    return () => clearInterval(t);
+  }, []);
+  return now;
+}
+
+// Top-right pill: date + 24-hour clock. Dimmed (along with the XMB) when a
+// content panel is open.
+function StatusBar({ open }) {
+  const now = useClock();
+  const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+  const date = `${now.getDate()}/${now.getMonth() + 1}`;
+  return (
+    <div className={`statusbar ${open ? "is-dim" : ""}`}>
+      <span className="sb-date">{date}</span>
+      <span className="sb-sep" aria-hidden="true">·</span>
+      <span className="sb-time">{time}</span>
+    </div>
+  );
+}
+
 // ---------- XMB NAV ----------
 // Mobile shrinks columns so all categories fit on one screen — same feel as
 // desktop where you can see the whole row at a glance.
@@ -349,7 +374,36 @@ function useColWidth() {
   return w;
 }
 
-function XMB({ catIdx, itemIdx, onSelectCat, onSelectItem, onOpen }) {
+// Inline replacement for the static "Now Playing" XMB item. Swaps the music
+// icon for the live album art and the title/sub for track/artist. Falls back
+// to the placeholder labels while data is loading or unavailable.
+function NowPlayingMenuItem({ data, active, onClick }) {
+  const hasLive = data?.status === "ok" && data?.title;
+  return (
+    <button
+      key="now-playing"
+      type="button"
+      className={`xmb-item np-item ${active ? "is-active" : ""}`}
+      onClick={onClick}
+      tabIndex={-1}
+    >
+      <div className="xmb-item-icon np-item-icon">
+        {hasLive && data.albumArt ? (
+          <img className="np-item-art" src={data.albumArt} alt="" loading="lazy" />
+        ) : (
+          <Icon name="note" size={36} />
+        )}
+        {hasLive && data.isPlaying && <span className="np-item-dot" aria-hidden="true" />}
+      </div>
+      <div className="xmb-item-text">
+        <div className="xmb-item-title">{hasLive ? data.title : "Now Playing"}</div>
+        <div className="xmb-item-sub">{hasLive ? data.artist : "Live from Spotify"}</div>
+      </div>
+    </button>
+  );
+}
+
+function XMB({ catIdx, itemIdx, onSelectCat, onSelectItem, onOpen, nowPlaying }) {
   const colWidth = useColWidth();
   // 50vw (viewport center) instead of 50% (row's own center) — the row's
   // intrinsic width is N × colWidth which doesn't equal the viewport on phones,
@@ -373,16 +427,19 @@ function XMB({ catIdx, itemIdx, onSelectCat, onSelectItem, onOpen }) {
               <div className="xmb-items">
                 {cat.items.map((item, ii) => {
                   const itemActive = active && ii === itemIdx;
+                  const click = () => { onSelectItem(ci, ii); onOpen(item); };
+
+                  // The now-playing item renders live Spotify data instead of
+                  // a static icon/title/sub. Same click behavior as other items.
+                  if (item.id === "now-playing") {
+                    return <NowPlayingMenuItem key={item.id} data={nowPlaying} active={itemActive} onClick={click} />;
+                  }
+
                   return (
                     <button
                       key={item.id}
                       className={`xmb-item ${itemActive ? "is-active" : ""}`}
-                      onClick={() => {
-                        // Single click opens — also sync selection state so
-                        // the panel renders the right item if it's a non-href.
-                        onSelectItem(ci, ii);
-                        onOpen(item);
-                      }}
+                      onClick={click}
                       tabIndex={-1}
                     >
                       <div className="xmb-item-icon">
@@ -478,32 +535,8 @@ function useNowPlaying() {
   return data;
 }
 
-// Persistent chip in the top-right. Shows album art + title + artist whenever
-// Spotify has anything to show. Click jumps the XMB to Sounds → Now Playing.
-function NowPlayingChip({ open, onOpen }) {
-  const data = useNowPlaying();
-  if (!data || data.status !== "ok" || !data.title) return null;
-  return (
-    <button
-      type="button"
-      className={`np-chip ${open ? "is-dim" : ""}`}
-      onClick={onOpen}
-      aria-label={`Open Now Playing — ${data.title} by ${data.artist}`}
-    >
-      {data.albumArt && <img className="np-chip-art" src={data.albumArt} alt="" loading="lazy" />}
-      <div className="np-chip-text">
-        <div className="np-chip-row">
-          <span className={`np-chip-dot ${data.isPlaying ? "is-live" : ""}`} aria-hidden="true" />
-          <span className="np-chip-title">{data.title}</span>
-        </div>
-        <div className="np-chip-artist">{data.artist}</div>
-      </div>
-    </button>
-  );
-}
-
 // Live Spotify "Now Playing" widget — full panel view. Uses the same hook as
-// the corner chip; the API's edge cache keeps both pollers cheap.
+// the inline XMB item; the API's edge cache keeps both pollers cheap.
 function NowPlaying() {
   const data = useNowPlaying();
 
@@ -870,28 +903,27 @@ function App() {
   const currentCat = CATEGORIES[catIdx];
   const currentItem = currentCat.items[Math.min(itemIdx, currentCat.items.length - 1)];
 
+  // Shared Spotify state — both the XMB row (live item icon/title/sub) and
+  // the content panel use this. One polling timer, one source of truth.
+  const nowPlaying = useNowPlaying();
+
   // Items with `href` open externally; everything else opens the content panel.
   // The optional `itm` arg lets click handlers pass the freshly-clicked item
   // directly, avoiding a stale-closure race with the `currentItem` state.
+  // Special case: now-playing opens the Spotify URL when we have one.
   const openItem = useCallback((itm) => {
     const target = itm || currentItem;
+    if (target?.id === "now-playing" && nowPlaying?.status === "ok" && nowPlaying.url) {
+      window.open(nowPlaying.url, "_blank", "noopener,noreferrer");
+      return;
+    }
     if (target?.href) {
       window.open(target.href, "_blank", "noopener,noreferrer");
-    } else {
-      setOpen(true);
+      return;
     }
-  }, [currentItem]);
-
-  // Used by the chip in the top-right corner. Jumps the XMB to Sounds → Now
-  // Playing and opens its content panel in one click.
-  const openNowPlaying = useCallback(() => {
-    const ci = CATEGORIES.findIndex((c) => c.id === "sounds");
-    const ii = CATEGORIES[ci]?.items.findIndex((i) => i.id === "now-playing") ?? 0;
-    if (ci < 0) return;
-    setCatIdx(ci);
-    setItemIdx(ii);
     setOpen(true);
-  }, []);
+  }, [currentItem, nowPlaying]);
+
 
   // Keyboard navigation
   useEffect(() => {
@@ -969,12 +1001,13 @@ function App() {
           onSelectCat={(ci) => { setCatIdx(ci); setItemIdx(0); }}
           onSelectItem={(ci, ii) => { setCatIdx(ci); setItemIdx(ii); }}
           onOpen={openItem}
+          nowPlaying={nowPlaying}
         />
       </div>
 
+      <StatusBar open={open} />
       <Hints open={open} />
       <TouchHint />
-      {menuReady && <NowPlayingChip open={open} onOpen={openNowPlaying} />}
 
       <ContentPanel open={open} item={currentItem} onClose={() => setOpen(false)} />
     </div>
