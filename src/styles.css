@@ -1,0 +1,1077 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   DIDRIK LIE-NIELSEN — DESIGN SYSTEM
+   ───────────────────────────────────────────────────────────────────────────
+   Everything on the site is white text at varying alphas over the twilight
+   gradient. There is no second color. Tokens below are the only sanctioned
+   colors/sizes/radii — when you reach for a value, pull it from here first.
+
+   ▸  INK    white text alphas (5 stops, 0.07 → 0.96)
+   ▸  SURF   semi-transparent backgrounds for cards and hover states
+   ▸  RADII  4 corner sizes plus a pill
+   ▸  TYPE   8-stop scale, 10px → 42px
+   ▸  TRACK  letter-spacing scale: tight body → wide eyebrow caps
+   ▸  MOTION 4 durations + the standard ease curve
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* INK — white at controlled alphas. Reach for one of these instead of raw rgba(). */
+  --ink-100:   rgba(255, 255, 255, 0.96);  /* primary text, key labels */
+  --ink-80:    rgba(255, 255, 255, 0.78);  /* body copy */
+  --ink-60:    rgba(255, 255, 255, 0.58);  /* subtitles, dim copy */
+  --ink-40:    rgba(255, 255, 255, 0.36);  /* eyebrows, metadata, captions */
+  --ink-20:    rgba(255, 255, 255, 0.14);  /* rules, borders */
+  --ink-10:    rgba(255, 255, 255, 0.07);  /* hairlines, inline-code bg */
+
+  /* Legacy aliases — older rules still reference these short names. Keep. */
+  --ink:       var(--ink-100);
+  --ink-dim:   var(--ink-60);
+  --ink-faint: var(--ink-40);
+  --rule:      var(--ink-20);
+  --halo:      rgba(255, 255, 255, 0.65);
+
+  /* SURFACE — backgrounds */
+  --surf-body:   #1a1622;                  /* page base, behind the wave */
+  --surf-card:   rgba(20, 17, 32, 0.78);   /* content-panel card */
+  --surf-hover:  rgba(255, 255, 255, 0.08);
+  --surf-active: rgba(255, 255, 255, 0.16);
+
+  /* RADII */
+  --r-xs:   3px;
+  --r-sm:   6px;
+  --r-md:   8px;
+  --r-lg:   14px;
+  --r-pill: 999px;
+
+  /* SHADOWS / ELEVATION */
+  --shadow-card: 0 24px 60px rgba(0, 0, 0, 0.5);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.35);
+
+  /* MOTION — one easing curve everywhere, four durations */
+  --ease-out:  cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-snap:  150ms;   /* color/border swaps */
+  --dur-quick: 220ms;   /* hover affordances */
+  --dur-med:   380ms;   /* panel fades */
+  --dur-slow:  720ms;   /* boot, splash */
+
+  /* TYPE — px scale */
+  --t-xs:   10px;   /* eyebrow, hint, scrollbar */
+  --t-sm:   11px;   /* metadata, footer, dt labels */
+  --t-base: 14px;   /* body copy */
+  --t-md:   16px;   /* lead paragraph */
+  --t-lg:   22px;   /* h2 inside article, mobile card title */
+  --t-xl:   26px;   /* card title (desktop) */
+  --t-2xl:  34px;   /* splash */
+  --t-3xl:  42px;   /* large display */
+
+  /* TRACKING — letter-spacing scale */
+  --tr-tight:  -0.01em;
+  --tr-snug:   -0.005em;
+  --tr-normal: 0;
+  --tr-wide:   0.04em;
+  --tr-wider:  0.16em;
+  --tr-widest: 0.32em;
+}
+
+* { box-sizing: border-box; }
+
+/* ─── Global focus ring ───
+   Only shown for keyboard navigation (:focus-visible), never on mouse click. */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.65);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+
+/* ─── Global link reset ───
+   Browsers default to blue/underlined and purple-on-visited. We override every
+   link site-wide; specific contexts can re-style on top. */
+a, a:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background: #1a1622;
+  overflow: hidden;
+  color: var(--ink);
+  font-family: "Helvetica Neue", Helvetica, "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: 0.01em;
+}
+
+.root {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── background ─── */
+.bg-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.bg-grad {
+  position: absolute;
+  inset: 0;
+  transition: background 800ms ease;
+}
+.bg-grad::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 20%, rgba(0, 0, 0, 0.25) 0%, transparent 60%);
+  pointer-events: none;
+}
+/* radial highlight in upper-right, matches reference */
+.bg-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 70% 55% at 82% 12%,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.04) 35%,
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.wave {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 600ms ease;
+}
+
+/* Each ribbon layer translates horizontally at its own speed. We bake an
+   extremely slow vertical glide into the same transform so there's no
+   second animation racing the first — that's what produced the stutter. */
+.ribbon {
+  transform-origin: center;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.ribbon-halo      { animation: ribbonFlowA 110s linear infinite; }
+.ribbon-mid-a     { animation: ribbonFlowB  92s linear infinite -18s; }
+.ribbon-mid-b     { animation: ribbonFlowA  84s linear infinite -28s; }
+.ribbon-inner-a   { animation: ribbonFlowB  72s linear infinite -10s; }
+.ribbon-inner-b   { animation: ribbonFlowA  66s linear infinite -22s; }
+.ribbon-highlight {
+  animation: ribbonFlowB 70s linear infinite -14s,
+             ribbonShimmer 14s ease-in-out infinite;
+}
+
+/* Path is ~3.5× viewBox wide; translate by 1200 SVG-px to loop seamlessly.
+   Y movement is tiny (±4px) and slow, swept into one smooth curve so it
+   doesn't visibly tick at keyframe stops. */
+@keyframes ribbonFlowA {
+  0%   { transform: translate3d(0, 0, 0); }
+  25%  { transform: translate3d(-300px, -2px, 0); }
+  50%  { transform: translate3d(-600px, 0, 0); }
+  75%  { transform: translate3d(-900px, 2px, 0); }
+  100% { transform: translate3d(-1200px, 0, 0); }
+}
+@keyframes ribbonFlowB {
+  0%   { transform: translate3d(0, 0, 0); }
+  25%  { transform: translate3d(-300px, 2px, 0); }
+  50%  { transform: translate3d(-600px, 0, 0); }
+  75%  { transform: translate3d(-900px, -2px, 0); }
+  100% { transform: translate3d(-1200px, 0, 0); }
+}
+@keyframes ribbonShimmer {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 0.85; }
+}
+
+/* Particles — single very slow horizontal drift; twinkle handles fade.
+   No competing transform on the same element. */
+.particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  transition: opacity 600ms ease;
+}
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  opacity: 0;
+  animation:
+    pDrift var(--dur) linear var(--delay) infinite,
+    pTwinkle var(--tdur) ease-in-out var(--tdelay) infinite;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+.particle.p-v0 { background: rgba(255, 255, 255, 0.95); }
+.particle.p-v1 { background: rgba(220, 235, 255, 0.95); box-shadow: 0 0 6px rgba(200, 220, 255, 0.9); }
+.particle.p-v2 { background: rgba(255, 250, 230, 0.95); box-shadow: 0 0 6px rgba(255, 240, 210, 0.85); }
+
+/* Smooth monotonic drift right — no zig-zag on Y. */
+@keyframes pDrift {
+  0%   { transform: translate3d(-10vw, 0, 0); }
+  100% { transform: translate3d(110vw, 0, 0); }
+}
+@keyframes pTwinkle {
+  0%, 100% { opacity: 0; }
+  50%      { opacity: var(--peak, 0.8); }
+}
+
+/* ─── chrome (status bar + brand) — fades in only after splash completes ─── */
+/* ─── XMB ─── */
+.xmb-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 900ms ease 100ms, transform 900ms cubic-bezier(0.22, 0.61, 0.36, 1) 100ms, filter 380ms ease;
+}
+.root.is-booted .xmb-stage {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.xmb-stage.is-dim {
+  opacity: 0;
+  filter: blur(8px);
+  pointer-events: none;
+}
+.xmb {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.xmb-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  transition: transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: transform;
+}
+
+.xmb-col {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Category icon row sits across the vertical center */
+.xmb-cat {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(-50% - 80px));
+  background: transparent;
+  border: 0;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  color: var(--ink);
+  opacity: 0.42;
+  transition: opacity 380ms ease, transform 380ms ease;
+}
+.xmb-col.is-active .xmb-cat {
+  opacity: 1;
+  transform: translate(-50%, calc(-50% - 90px));
+}
+.xmb-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 84px;
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0));
+  transition: filter 380ms ease, transform 380ms ease;
+}
+.xmb-col.is-active .xmb-icon-wrap {
+  filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.35));
+}
+.xmb-cat-label {
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 380ms ease, transform 380ms ease;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+}
+.xmb-col.is-active .xmb-cat-label {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Vertical items list */
+.xmb-items {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, 40px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 420ms ease;
+  width: 380px;
+}
+.xmb-col.is-active .xmb-items {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.xmb-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 4px;
+  opacity: 0.5;
+  transition: opacity 220ms ease, background 220ms ease, transform 380ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  text-align: left;
+  font-family: inherit;
+  width: 100%;
+}
+.xmb-item:hover { opacity: 0.85; }
+.xmb-item.is-active {
+  opacity: 1;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.02));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10);
+}
+.xmb-item-icon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0));
+  transition: filter 220ms ease;
+}
+.xmb-item.is-active .xmb-item-icon {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+}
+.xmb-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.xmb-item-title {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.xmb-item-sub {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--ink-dim);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Active item shifts the whole items list so the selected one sits at center */
+.xmb-col.is-active .xmb-items {
+  /* JS-free centering: rely on Y translate offsets per item via :nth-child? 
+     Simpler: list is short and acceptable as-is. Active row gets the highlight. */
+}
+
+/* ─── hints (button glyphs) ─── */
+.hints {
+  position: absolute;
+  bottom: 28px;
+  right: 36px;
+  display: flex;
+  gap: 18px;
+  z-index: 10;
+  font-size: var(--t-sm);
+  color: var(--ink-60);
+  letter-spacing: var(--tr-wide);
+}
+.hint { display: flex; align-items: center; gap: 6px; }
+.hint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--r-xs);
+  font-family: inherit;
+  font-size: var(--t-xs);
+  background: var(--surf-hover);
+  border: 1px solid var(--ink-20);
+  color: var(--ink-100);
+}
+.hint span { opacity: 0.7; }
+
+/* One-shot pill at the bottom of touch viewports — shown 5.4s after boot
+   (after the splash finishes), persists for ~4.5s, then dismisses itself.
+   Persists dismissal in localStorage so returning visitors never see it. */
+.touch-hint {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  background: rgba(20, 17, 32, 0.72);
+  border: 1px solid var(--ink-20);
+  border-radius: var(--r-pill);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--ink-80);
+  font-size: var(--t-sm);
+  letter-spacing: var(--tr-wide);
+  pointer-events: none;
+  transform: translate(-50%, 0);
+  animation: touchHintRise 400ms var(--ease-out) both,
+             touchHintFade  600ms 3900ms ease forwards;
+}
+.touch-hint .th-arrows {
+  font-size: 9px;
+  opacity: 0.7;
+  letter-spacing: 0.32em;
+}
+@keyframes touchHintRise {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+@keyframes touchHintFade {
+  to { opacity: 0; transform: translate(-50%, 4px); }
+}
+
+/* ─── content panel (modal-style) ───
+   Full-viewport overlay that centers a card. The card has a sticky head + foot
+   and a scrollable body so the back button never disappears below the fold. */
+.content-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 380ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5vh 24px;
+  box-sizing: border-box;
+  /* 3D context for the cp-inner tilt — bigger perspective = more subtle */
+  perspective: 1400px;
+}
+.content-panel.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.cp-inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 640px;
+  max-height: min(86vh, 760px);
+  background: var(--surf-card);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid var(--ink-20);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  /* Tilt — JS writes --tx and --ty (degrees). Variables are the single source
+     of truth so the cpRise animation and the live tilt can share the same
+     `transform` property without one clobbering the other. */
+  --tx: 0deg;
+  --ty: 0deg;
+  --lift-y: 0px;
+  --lift-s: 1;
+  transform: translateY(var(--lift-y)) scale(var(--lift-s)) rotateX(var(--tx)) rotateY(var(--ty));
+  animation: cpRise 420ms var(--ease-out) both;
+  /* Transition the tilt vars (not `transform` directly) so cpRise's lift vars
+     don't have a competing transition fighting them. Slower than tracking gives
+     the card a touch of inertia — feels heavier, less twitchy. */
+  transition: --tx 260ms var(--ease-out), --ty 260ms var(--ease-out);
+  will-change: transform;
+}
+@keyframes cpRise {
+  from { opacity: 0; --lift-y: 12px; --lift-s: 0.985; }
+  to   { opacity: 1; --lift-y: 0px;  --lift-s: 1;     }
+}
+
+/* Register custom properties so they interpolate smoothly inside keyframes
+   and transitions. Without these, --lift-y/etc would jump discretely. */
+@property --tx     { syntax: '<angle>';  inherits: false; initial-value: 0deg; }
+@property --ty     { syntax: '<angle>';  inherits: false; initial-value: 0deg; }
+@property --lift-y { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --lift-s { syntax: '<number>'; inherits: false; initial-value: 1; }
+
+/* sticky head — eyebrow + title + sub */
+.cp-head {
+  flex: 0 0 auto;
+  padding: 28px 32px 18px;
+  border-bottom: 1px solid var(--rule);
+}
+.cp-eyebrow {
+  font-size: var(--t-xs);
+  font-weight: 400;
+  letter-spacing: var(--tr-widest);
+  text-transform: uppercase;
+  color: var(--ink-40);
+  margin-bottom: 10px;
+}
+.cp-title {
+  font-size: var(--t-xl);
+  font-weight: 400;
+  letter-spacing: var(--tr-snug);
+  margin: 0 0 6px;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+.cp-sub {
+  font-size: var(--t-sm);
+  font-weight: 300;
+  color: var(--ink-60);
+  letter-spacing: var(--tr-wide);
+}
+
+/* scrollable body — the only part that scrolls */
+.cp-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 22px 32px 26px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+}
+/* ═══ ARTICLE BODY ═══
+   Everything inside <article> in a content panel pulls from this block.
+   Keep specificity flat — each rule targets one element/class and uses tokens. */
+
+.cp-body article {
+  font-size: var(--t-base);
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--ink-80);
+  text-wrap: pretty;
+}
+
+/* Paragraphs + emphasis */
+.cp-body p     { margin: 0 0 1.0em; }
+.cp-body p:last-child { margin-bottom: 0; }
+.cp-body .lead {
+  font-size: var(--t-md);
+  font-weight: 300;
+  color: var(--ink-100);
+  margin-bottom: 1.2em;
+  line-height: 1.5;
+}
+.cp-body strong { font-weight: 500; color: var(--ink-100); }
+.cp-body em     { font-style: italic; color: var(--ink-100); }
+
+/* Inline + block code */
+.cp-body code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.88em;
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+  background: var(--ink-10);
+}
+.cp-body pre {
+  margin: 1.2em 0;
+  padding: 14px 16px;
+  border-radius: var(--r-sm);
+  background: var(--ink-10);
+  border: 1px solid var(--ink-20);
+  overflow-x: auto;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+.cp-body pre code { padding: 0; background: transparent; }
+
+/* Links — single source of truth so browser blue/purple never leaks through.
+   Subtle bottom-rule that thickens on hover; visited matches default. */
+.cp-body a,
+.cp-body a:visited {
+  color: var(--ink-100);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.32);
+  padding-bottom: 1px;
+  transition: border-color var(--dur-snap) var(--ease-out),
+              color var(--dur-snap) var(--ease-out);
+}
+.cp-body a:hover { border-bottom-color: var(--ink-100); }
+.cp-body a:active { color: var(--ink-80); }
+
+/* Headings inside an article (e.g. logbook section headers) */
+.cp-body h2 {
+  font-size: var(--t-lg);
+  font-weight: 400;
+  letter-spacing: var(--tr-snug);
+  margin: 1.6em 0 0.5em;
+  line-height: 1.2;
+  color: var(--ink-100);
+}
+.cp-body h2:first-child { margin-top: 0; }
+.cp-body h3 {
+  font-size: var(--t-md);
+  font-weight: 500;
+  letter-spacing: var(--tr-normal);
+  margin: 1.4em 0 0.4em;
+  color: var(--ink-100);
+}
+
+/* Lists */
+.cp-body ul, .cp-body ol {
+  margin: 0 0 1.2em;
+  padding-left: 22px;
+}
+.cp-body li { margin-bottom: 0.45em; }
+.cp-body li:last-child { margin-bottom: 0; }
+
+/* Blockquote */
+.cp-body blockquote {
+  margin: 1.4em 0;
+  padding: 4px 0 4px 16px;
+  border-left: 2px solid var(--ink-20);
+  color: var(--ink-60);
+  font-style: italic;
+}
+.cp-body blockquote p:last-child { margin-bottom: 0; }
+
+/* Horizontal rule */
+.cp-body hr {
+  border: 0;
+  border-top: 1px solid var(--ink-20);
+  margin: 1.8em 0;
+}
+
+/* Definition lists — used for skate credits, gear lists, etc. */
+.cp-body .contact-list {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 10px 18px;
+  margin: 0 0 1.2em;
+}
+.cp-body .contact-list dt {
+  color: var(--ink-40);
+  font-weight: 400;
+  letter-spacing: var(--tr-wide);
+  font-size: var(--t-sm);
+  text-transform: uppercase;
+  padding-top: 2px;
+}
+.cp-body .contact-list dd { margin: 0; }
+
+/* Utility text classes */
+.cp-body .dim { color: var(--ink-40); }
+.cp-body .caption {
+  font-size: var(--t-sm);
+  color: var(--ink-60);
+  font-style: italic;
+  margin-top: 1.4em;
+}
+.cp-body .caption.small { font-size: var(--t-xs); }
+
+/* ═══ MEDIA CONTAINERS ═══
+   Video, map, image grids, and the placeholder block all share the same border
+   + radius tokens so they visually belong together. */
+
+.cp-body .photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 1.2em 0;
+}
+
+/* 16:9 iframe wrapper for skate-edit embeds. The button variant (.video-poster)
+   reuses the same frame styles so the click-to-load thumbnail and the loaded
+   iframe stay layout-identical — no layout jump when the user hits play. */
+.video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 1.2em 0;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  border: 1px solid var(--ink-20);
+  background: #000;
+}
+.video-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.video-poster {
+  appearance: none;
+  padding: 0;
+  display: block;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.video-poster img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.82;
+  transition: opacity var(--dur-quick) var(--ease-out),
+              transform var(--dur-med) var(--ease-out);
+}
+.video-poster:hover img { opacity: 1; transform: scale(1.02); }
+.video-play {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 4px; /* nudge the ▶ glyph optically into the circle */
+  pointer-events: none;
+  transition: background var(--dur-quick) var(--ease-out),
+              transform var(--dur-med) var(--ease-out);
+}
+.video-poster:hover .video-play {
+  background: rgba(0, 0, 0, 0.72);
+  transform: translate(-50%, -50%) scale(1.06);
+}
+
+/* Google My Maps embed (kept for future use even though Spots is gone) */
+.map-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  margin: 1.2em 0;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  border: 1px solid var(--ink-20);
+  background: var(--surf-body);
+}
+.map-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  filter: brightness(0.95);
+}
+
+/* Film scans — each cell is a square clickable thumbnail */
+.cp-body .film-scan-link {
+  display: block;
+  border: 0;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.3);
+  transition: box-shadow var(--dur-quick) var(--ease-out);
+}
+.cp-body .film-scan-link:hover {
+  box-shadow: 0 0 0 1px var(--ink-40);
+}
+.cp-body .film-scan {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  aspect-ratio: 1 / 1;
+  transition: opacity var(--dur-quick) var(--ease-out),
+              transform var(--dur-med)   var(--ease-out);
+}
+.cp-body .film-scan-link:hover .film-scan { opacity: 0.85; transform: scale(1.02); }
+
+/* ═══ LOGBOOK ═══
+   List of dated entries, each separated by a thin rule. */
+
+.cp-body .log-list { display: block; }
+.cp-body .log-entry {
+  padding: 22px 0 26px;
+  border-bottom: 1px solid var(--rule);
+}
+.cp-body .log-entry:first-child { padding-top: 0; }
+.cp-body .log-entry:last-child  { border-bottom: 0; padding-bottom: 0; }
+.cp-body .log-date {
+  font-size: var(--t-sm);
+  font-weight: 400;
+  letter-spacing: var(--tr-widest);
+  text-transform: uppercase;
+  color: var(--ink-40);
+  margin: 0 0 0.8em;
+}
+.cp-body .log-body p { margin: 0 0 0.8em; }
+.cp-body .log-body p:last-child { margin-bottom: 0; }
+
+/* small ↗ glyph next to external-link items in the XMB list */
+.xmb-item-ext {
+  display: inline-block;
+  margin-left: 0.5em;
+  font-size: 0.8em;
+  opacity: 0.55;
+  transform: translateY(-1px);
+}
+.xmb-item.is-active .xmb-item-ext { opacity: 0.9; }
+
+/* Placeholders — diagonal stripe pattern with a centered mono label.
+   Used for empty media slots until real assets land. */
+.placeholder {
+  position: relative;
+  width: 100%;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  margin: 1.2em 0;
+  border: 1px solid var(--ink-20);
+}
+.placeholder-stripes {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.045) 0px,
+    rgba(255, 255, 255, 0.045) 8px,
+    rgba(255, 255, 255, 0.085) 8px,
+    rgba(255, 255, 255, 0.085) 16px
+  );
+}
+.placeholder-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: var(--t-sm);
+  color: var(--ink-60);
+  letter-spacing: var(--tr-wider);
+  text-transform: uppercase;
+}
+
+/* sticky foot — back pill + keyboard hint */
+.cp-foot {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px 12px 16px;
+  border-top: 1px solid var(--rule);
+}
+.cp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--surf-hover);
+  border: 1px solid var(--ink-20);
+  border-radius: var(--r-lg);
+  color: var(--ink-100);
+  font-family: inherit;
+  font-size: var(--t-sm);
+  letter-spacing: var(--tr-wide);
+  cursor: pointer;
+  transition: background var(--dur-quick) var(--ease-out),
+              border-color var(--dur-quick) var(--ease-out);
+}
+.cp-back:hover {
+  background: var(--surf-active);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+.cp-back-glyph { font-size: 9px; opacity: 0.7; }
+.cp-hint {
+  font-size: var(--t-xs);
+  color: var(--ink-40);
+  letter-spacing: var(--tr-wider);
+  text-transform: uppercase;
+}
+
+/* scrollbar styling — applied to .cp-body now that it owns the scroll */
+.cp-body::-webkit-scrollbar { width: 6px; }
+.cp-body::-webkit-scrollbar-track { background: transparent; }
+.cp-body::-webkit-scrollbar-thumb {
+  background: var(--ink-20);
+  border-radius: 3px;
+}
+.cp-body::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.30); }
+
+/* ─── boot / splash screen ─── */
+.splash {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+.splash-black {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 1;
+  transition: opacity 1200ms ease;
+}
+/* As soon as we leave the 'black' phase, fade the curtain out */
+.root:not(.boot-black) .splash-black {
+  opacity: 0;
+}
+.splash-title {
+  position: absolute;
+  top: 50%;
+  right: 8%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: baseline;
+  gap: 0.55em;
+  opacity: 0;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.22);
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.95);
+  animation: splashTitleSeq 3600ms ease 1400ms both;
+}
+@keyframes splashTitleSeq {
+  0%   { opacity: 0; }   /*    0 –  800ms : fade in   */
+  22%  { opacity: 1; }
+  78%  { opacity: 1; }   /*  800 – 2800ms : hold 2s   */
+  100% { opacity: 0; }   /* 2800 – 3600ms : fade out  */
+}
+.splash-title-name {
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  line-height: 1;
+  color: #fff;
+}
+.splash-title-thin {
+  font-size: 34px;
+  font-weight: 300;
+  letter-spacing: -0.005em;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.92);
+  text-transform: none;
+  padding-left: 0;
+}
+.splash-title-rule { display: none; }
+
+@media (max-width: 720px) {
+  .splash-title { right: 6%; }
+  .splash-title-name, .splash-title-thin { font-size: 22px; }
+}
+
+/* responsive cap */
+@media (max-width: 880px) {
+  .cp-body .photo-grid { grid-template-columns: repeat(2, 1fr); }
+  .hints { display: none; }
+}
+
+/* SVG icons scale with their wrap so when we shrink the wrap on mobile the
+   glyph follows rather than overflowing. The inline `size` prop in JSX acts
+   as a viewBox setter; CSS controls the actual rendered footprint. */
+.xmb-icon-wrap svg,
+.xmb-item-icon svg { width: 100%; height: 100%; }
+
+/* Mobile XMB — column width is set in JS (useColWidth=76). Here we shrink
+   icon glyphs, labels, and item rows so all 5 categories fit in one row of a
+   phone viewport, with the active one centered and adjacents peeking in. */
+@media (max-width: 600px) {
+  /* Category icons: smaller wrap → all 5 fit across the screen */
+  .xmb-icon-wrap { width: 44px; height: 44px; }
+  .xmb-cat-label { font-size: 10px; letter-spacing: 0.05em; }
+
+  /* Tighter vertical rhythm — icons are smaller so push them less above center */
+  .xmb-cat                  { transform: translate(-50%, calc(-50% - 54px)); }
+  .xmb-col.is-active .xmb-cat { transform: translate(-50%, calc(-50% - 62px)); }
+
+  /* Items list — narrower inset and closer to the icon */
+  .xmb-items {
+    width: calc(100vw - 28px);
+    transform: translate(-50%, 22px);
+    gap: 2px;
+  }
+  .xmb-item { padding: 8px 12px; gap: 10px; border-radius: 6px; }
+  .xmb-item-icon { width: 26px; height: 26px; }
+  .xmb-item-title { font-size: 13px; }
+  .xmb-item-sub   { font-size: 10px; }
+}
+
+/* mobile perf — the wave background has 6 layered SVG paths and 140 animated
+   particles; both fight with the touch scroll thread. Drop the most expensive
+   blurred ribbon layers and the particle field entirely on small screens. */
+@media (max-width: 768px) {
+  .ribbon-halo,
+  .ribbon-mid-a,
+  .ribbon-mid-b   { display: none; }
+  .particles      { display: none; }
+}
+
+/* Hint the compositor to keep the XMB row + content panel on their own GPU
+   layers so animating + scrolling them doesn't repaint the wave background. */
+.xmb-row { will-change: transform; }
+.cp-body { will-change: scroll-position; }
+
+/* mobile content panel — smaller card, more whitespace around it, no hint */
+@media (max-width: 600px) {
+  .content-panel { padding: 6vh 22px; }
+  .cp-inner      { max-height: 72vh; border-radius: var(--r-md); }
+  .cp-head       { padding: 16px 16px 12px; }
+  .cp-body       { padding: 14px 16px 18px; }
+  .cp-foot       { padding: 8px 12px; }
+
+  .cp-eyebrow    { font-size: 9px;  margin-bottom: 8px; letter-spacing: 0.28em; }
+  .cp-title      { font-size: 20px; }
+  .cp-sub        { font-size: 11px; }
+
+  .cp-body article    { font-size: 13px; }
+  .cp-body .lead      { font-size: 14px; margin-bottom: 1em; }
+  .cp-body h2         { font-size: 16px; margin: 1.2em 0 0.4em; }
+  .cp-body .log-date  { font-size: 10px; letter-spacing: 0.24em; }
+  .cp-body .contact-list { grid-template-columns: 76px 1fr; gap: 6px 12px; }
+  .cp-body .contact-list dt { font-size: 10px; }
+  .cp-body .caption       { font-size: 11px; }
+  .cp-body .caption.small { font-size: 10px; }
+
+  .video-frame, .map-frame, .placeholder { margin: 0.9em 0; }
+
+  .cp-back       { font-size: 10px; padding: 4px 10px; gap: 5px; }
+  .cp-back-glyph { font-size: 8px; }
+  .cp-hint       { display: none; }
+}
