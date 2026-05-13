@@ -60,14 +60,14 @@ const CATEGORIES = [
     ],
   },
   {
-    id: "film",
-    label: "Film",
+    id: "pictures",
+    label: "Pictures",
     icon: "image",
     items: [
-      // slug → folder name under public/img/. count → number of scans there.
-      // Add new rolls by dropping scans named 01.jpg, 02.jpg, ... into a new
+      // slug → folder name under public/img/. count → number of images there.
+      // Add new sets by dropping images named 01.jpg, 02.jpg, ... into a new
       // folder and prepending a new entry here.
-      { id: "f1", title: "Japan", subtitle: "Fuji Rensha · Fuji · 2024", body: "film-roll",
+      { id: "p-japan", title: "Japan", subtitle: "Fuji Rensha · Fuji · 2024", body: "film-roll",
         slug: "roll-01", count: 6, meta: { camera: "Fuji Rensha", stock: "Fuji", date: "Japan, 2024" } },
     ],
   },
