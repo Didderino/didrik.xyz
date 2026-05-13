@@ -19,8 +19,8 @@ const CATEGORIES = [
     label: "About",
     icon: "user",
     items: [
-      { id: "about-me", title: "About Didrik", subtitle: "23 · Oslo · skates, shoots film", body: "about" },
-      { id: "now", title: "Now", subtitle: "What I'm into, May 2026", body: "now" },
+      { id: "about-me", title: "About Didrik", subtitle: "23 · bergen / berlin", body: "about" },
+      { id: "now", title: "Now", subtitle: "Summer 2026", body: "now" },
     ],
   },
   {
@@ -701,16 +701,20 @@ function ContentBody({ kind, item }) {
     case "about":
       return (
         <article>
-          <p className="lead">A small place on the internet.</p>
-          <p>What I keep, what I'm into, what I'm letting land. No newsletter, no metrics, no comments. If you want to reach me, the link is under <em>Links</em>.</p>
-          <p>Updated when there's something worth saving.</p>
+          <p className="lead">Didrik, 23 — bergen / berlin based.</p>
+          <p>A personal archive. Current, past, and future interests, updated whenever.</p>
         </article>
       );
     case "now":
       return (
         <article>
-          <p className="lead">Sitting with a few open loops.</p>
-          <p>Less screen, more street. Letting the rest stay quiet.</p>
+          <p className="lead">Interning in Bergen &amp; Gothenburg.</p>
+          <h2>Goal for the summer</h2>
+          <ul>
+            <li>Swim in the ocean as much as possible.</li>
+            <li>Grill as much as possible.</li>
+            <li>Meet up with the homies as much as possible.</li>
+          </ul>
         </article>
       );
 
