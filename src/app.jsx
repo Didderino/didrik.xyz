@@ -758,7 +758,7 @@ function Splash({ phase }) {
       <div className="splash-black" />
       <div className="splash-title">
         <span className="splash-title-name">Didrik</span>
-        <span className="splash-title-thin">Portfolio</span>
+        <span className="splash-title-thin">Archive</span>
         <div className="splash-title-rule" />
       </div>
     </div>
