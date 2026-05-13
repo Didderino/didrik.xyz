@@ -33,7 +33,7 @@ const CATEGORIES = [
         body: "skate-edit", youtube: "iJQ_2I1RRo4",
         credits: {
           film: "Georg Nuttall",
-          cast: ["Amund Jonsson", "Didrik Lie-Nielsen", "Povilas Jucys", "Sander Systad", "August Hågøy", "Elias Heitmann", "Hauk Vangen", "Oliver Nuttall"],
+          cast: ["Amund Jonsson", "Didrik", "Povilas Jucys", "Sander Systad", "August Hågøy", "Elias Heitmann", "Hauk Vangen", "Oliver Nuttall"],
           additional: ["Herman Bucher", "Frank Williams Kayasman", "Andreas Ottesen", "Victor Dale", "Truls Knarvik", "Kristoffer Kaald", "Dovydas Jucys", "Mikolaj Wilczak", "Håvard Helleland", "Jonas Bang"],
           location: "Bergen, 2023",
         },
@@ -43,7 +43,7 @@ const CATEGORIES = [
         body: "skate-edit", youtube: "XAoQOppZdf8",
         credits: {
           film: "Georg Nuttall (filmed & edited)",
-          cast: ["August Hågøy", "Jonas Bang", "Didrik Lie-Nielsen"],
+          cast: ["August Hågøy", "Jonas Bang", "Didrik"],
           music: "Tim Hecker · John Glacier",
           location: "Bergen, 2022",
         },
@@ -53,7 +53,7 @@ const CATEGORIES = [
         body: "skate-edit", youtube: "_zNDGDopFQI",
         credits: {
           film: "Georg Nuttall",
-          cast: ["Amund Jonsson", "Povilas Jucys", "Sean Stephenson", "Didrik Lie-Nielsen", "August Hågøy", "Jonas Bang", "Herman Bucher", "Andreas Ottesen", "Sander Systad", "Oliver Nuttall", "Elias Heitmann"],
+          cast: ["Amund Jonsson", "Povilas Jucys", "Sean Stephenson", "Didrik", "August Hågøy", "Jonas Bang", "Herman Bucher", "Andreas Ottesen", "Sander Systad", "Oliver Nuttall", "Elias Heitmann"],
           location: "Bergen, 2021",
         },
       },
@@ -72,6 +72,16 @@ const CATEGORIES = [
         slug: "roll-02", count: 0, meta: { camera: "TODO", stock: "TODO", date: "TODO" } },
       { id: "f1", title: "Japan", subtitle: "Fuji Rensha · Fuji · 2024", body: "film-roll",
         slug: "roll-01", count: 6, meta: { camera: "Fuji Rensha", stock: "Fuji", date: "Japan, 2024" } },
+    ],
+  },
+  {
+    id: "sounds",
+    label: "Sounds",
+    icon: "note",
+    items: [
+      // Pulled live from Spotify via /api/now-playing. Falls back to last-played
+      // when nothing is actively playing. See scripts/spotify-auth.js for setup.
+      { id: "now-playing", title: "Now Playing", subtitle: "Live from Spotify", body: "now-playing" },
     ],
   },
   {
@@ -444,6 +454,62 @@ function VideoEmbed({ youtube, vimeo, label }) {
   );
 }
 
+// Live Spotify "Now Playing" widget. Hits /api/now-playing (Vercel serverless
+// function). If env vars aren't set yet, the API returns a helpful "configure
+// me" payload so the panel renders something useful in dev/setup states.
+function NowPlaying() {
+  const [data, setData] = useState({ status: "loading" });
+
+  useEffect(() => {
+    let alive = true;
+    const fetchOnce = async () => {
+      try {
+        const r = await fetch("/api/now-playing", { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const json = await r.json();
+        if (alive) setData(json);
+      } catch (e) {
+        if (alive) setData({ status: "error", error: String(e?.message || e) });
+      }
+    };
+    fetchOnce();
+    const t = setInterval(fetchOnce, 30 * 1000); // refresh every 30s while the panel is open
+    return () => { alive = false; clearInterval(t); };
+  }, []);
+
+  if (data.status === "loading") {
+    return <article><p className="lead">Checking the turntable…</p></article>;
+  }
+  if (data.status === "unconfigured") {
+    return (
+      <article>
+        <p className="lead">Spotify isn't connected yet.</p>
+        <p>Run <code>node scripts/spotify-auth.js</code> from the repo, then set <code>SPOTIFY_CLIENT_ID</code>, <code>SPOTIFY_CLIENT_SECRET</code>, and <code>SPOTIFY_REFRESH_TOKEN</code> in Vercel env vars and redeploy.</p>
+      </article>
+    );
+  }
+  if (data.status === "error" || !data.title) {
+    return <article><p className="lead">Quiet right now.</p></article>;
+  }
+  return (
+    <article className="np">
+      <div className="np-eyebrow">{data.isPlaying ? "Now playing" : "Last played"}</div>
+      <div className="np-row">
+        {data.albumArt && (
+          <a href={data.url} target="_blank" rel="noreferrer" className="np-art-link" aria-label={`Open ${data.title} in Spotify`}>
+            <img className="np-art" src={data.albumArt} alt="" loading="lazy" />
+          </a>
+        )}
+        <div className="np-text">
+          <a href={data.url} target="_blank" rel="noreferrer" className="np-title">{data.title}</a>
+          <div className="np-artist">{data.artist}</div>
+          {data.album && <div className="np-album">{data.album}</div>}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 // Google My Maps embed. To create one:
 //   1. Go to mymaps.google.com → Create a new map.
 //   2. Drop pins for each spot. Click a pin to add notes + photos.
@@ -470,22 +536,16 @@ function ContentBody({ kind, item }) {
     case "about":
       return (
         <article>
-          <p>Hi, I'm <strong>Didrik</strong>. 23, based in Oslo. I skate, take film photos, and keep a logbook here so the years don't blur together.</p>
-          <p>This site is a slow corner of the internet for old skate edits, scanned rolls, and short notes. No newsletter, no analytics, no comments. Links to where I actually post things are under <em>Links</em>.</p>
-          <p>TODO — a paragraph about what you're up to right now (studying / working / making).</p>
+          <p className="lead">A small place on the internet.</p>
+          <p>What I keep, what I'm into, what I'm letting land. No newsletter, no metrics, no comments. If you want to reach me, the link is under <em>Links</em>.</p>
+          <p>Updated when there's something worth saving.</p>
         </article>
       );
     case "now":
       return (
         <article>
-          <p>As of May 2026, in roughly descending order of attention:</p>
-          <ul>
-            <li>Skating around Oslo whenever the streets are dry.</li>
-            <li>TODO — a film camera or stock you're shooting at the moment.</li>
-            <li>TODO — something you're watching, reading, or listening to.</li>
-            <li>TODO — anything else you want to flag.</li>
-          </ul>
-          <p>Inspired by <em>derek sivers' /now page</em> — I update this when something actually changes.</p>
+          <p className="lead">Sitting with a few open loops.</p>
+          <p>Less screen, more street. Letting the rest stay quiet.</p>
         </article>
       );
 
@@ -547,6 +607,10 @@ function ContentBody({ kind, item }) {
         </article>
       );
     }
+
+    // ---------- SOUNDS ----------
+    case "now-playing":
+      return <NowPlaying />;
 
     // ---------- LOGBOOK ----------
     case "log-view": {

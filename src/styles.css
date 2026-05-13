@@ -825,6 +825,63 @@ html, body, #root {
 }
 .cp-body .film-scan-link:hover .film-scan { opacity: 0.85; transform: scale(1.02); }
 
+/* ═══ NOW PLAYING (Sounds) ═══
+   Album art + track info pulled from /api/now-playing. Layout is a horizontal
+   pair on desktop, stacks if a roll is unusually narrow. */
+
+.cp-body .np-eyebrow {
+  font-size: var(--t-xs);
+  letter-spacing: var(--tr-widest);
+  text-transform: uppercase;
+  color: var(--ink-40);
+  margin-bottom: 14px;
+}
+.cp-body .np-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.cp-body .np-art-link {
+  flex: 0 0 auto;
+  display: block;
+  width: 110px;
+  height: 110px;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  border: 1px solid var(--ink-20);
+  background: rgba(0, 0, 0, 0.3);
+  transition: transform var(--dur-quick) var(--ease-out);
+  border-bottom: 1px solid var(--ink-20);   /* override .cp-body a border */
+  padding-bottom: 0;
+}
+.cp-body .np-art-link:hover { transform: scale(1.03); }
+.cp-body .np-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cp-body .np-text { min-width: 0; }
+.cp-body .np-title {
+  display: block;
+  font-size: var(--t-md);
+  font-weight: 500;
+  color: var(--ink-100);
+  margin-bottom: 4px;
+  border-bottom: none;          /* override default link underline */
+  padding-bottom: 0;
+}
+.cp-body .np-title:hover { color: var(--ink-100); border-bottom: none; }
+.cp-body .np-artist { color: var(--ink-80); font-size: var(--t-base); }
+.cp-body .np-album  { color: var(--ink-40); font-size: var(--t-sm); margin-top: 2px; }
+
+@media (max-width: 600px) {
+  .cp-body .np-art-link { width: 80px; height: 80px; }
+  .cp-body .np-row { gap: 14px; }
+  .cp-body .np-title { font-size: var(--t-base); }
+  .cp-body .np-artist { font-size: var(--t-sm); }
+}
+
 /* ═══ LOGBOOK ═══
    List of dated entries, each separated by a thin rule. */
 
