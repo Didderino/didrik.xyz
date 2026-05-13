@@ -64,12 +64,9 @@ const CATEGORIES = [
     label: "Film",
     icon: "image",
     items: [
-      // slug → folder name under /img/. count → number of scans in that folder.
-      // Leave count:0 for an empty roll (renders placeholders with instructions).
-      { id: "f3", title: "Roll 03", subtitle: "TODO camera · TODO stock · TODO date", body: "film-roll",
-        slug: "roll-03", count: 0, meta: { camera: "TODO", stock: "TODO", date: "TODO" } },
-      { id: "f2", title: "Roll 02", subtitle: "TODO camera · TODO stock · TODO date", body: "film-roll",
-        slug: "roll-02", count: 0, meta: { camera: "TODO", stock: "TODO", date: "TODO" } },
+      // slug → folder name under public/img/. count → number of scans there.
+      // Add new rolls by dropping scans named 01.jpg, 02.jpg, ... into a new
+      // folder and prepending a new entry here.
       { id: "f1", title: "Japan", subtitle: "Fuji Rensha · Fuji · 2024", body: "film-roll",
         slug: "roll-01", count: 6, meta: { camera: "Fuji Rensha", stock: "Fuji", date: "Japan, 2024" } },
     ],
@@ -79,9 +76,10 @@ const CATEGORIES = [
     label: "Sounds",
     icon: "note",
     items: [
-      // Pulled live from Spotify via /api/now-playing. Falls back to last-played
-      // when nothing is actively playing. See scripts/spotify-auth.js for setup.
-      { id: "now-playing", title: "Now Playing", subtitle: "Live from Spotify", body: "now-playing" },
+      // All three pulled live from Spotify. Setup once with scripts/spotify-auth.js.
+      { id: "now-playing",     title: "Now Playing",     subtitle: "Live from Spotify",  body: "now-playing" },
+      { id: "on-rotation",     title: "On Rotation",     subtitle: "Top tracks · 4 weeks", body: "on-rotation" },
+      { id: "recently-played", title: "Recently Played", subtitle: "Last 10",            body: "recently-played" },
     ],
   },
   {
@@ -107,23 +105,17 @@ const CATEGORIES = [
 ];
 
 // ---------- LOGBOOK ENTRIES ----------
-// To add an entry: copy the latest block, change date + body, paste at the top.
-// Body can be a JSX fragment (use <p>, <ul>, <em>, <code>, <a> etc.) or just a
-// string for short one-liners. Dates are sorted newest-first automatically.
-const LOG_ENTRIES = [
-  {
-    date: "2026-05-11",
-    body: (
-      <>
-        <p>TODO — first entry. Skated where, shot what, watched what.</p>
-      </>
-    ),
-  },
-  // {
-  //   date: "2026-05-04",
-  //   body: <p>Short one-liner works fine too.</p>,
-  // },
-];
+// To add an entry: copy the example block, change date + body, paste at the
+// top of the array. Body can be a JSX fragment (use <p>, <ul>, <em>, <code>,
+// <a> etc.) or just a string for short one-liners. Dates are sorted
+// newest-first automatically.
+//
+// Example shape:
+//   {
+//     date: "2026-05-12",
+//     body: <><p>Skated Operaen. Light was good.</p></>,
+//   },
+const LOG_ENTRIES = [];
 
 // ---------- ICONS (original glyphs) ----------
 function Icon({ name, size = 64 }) {
@@ -406,10 +398,16 @@ function useColWidth() {
 }
 
 // Inline replacement for the static "Now Playing" XMB item. Swaps the music
-// icon for the live album art and the title/sub for track/artist. Falls back
-// to the placeholder labels while data is loading or unavailable.
+// icon for the live album art and the title/sub for track/artist. An eyebrow
+// line above the title spells out "Currently playing on Spotify" or "Last
+// played on Spotify" so visitors know what they're looking at.
 function NowPlayingMenuItem({ data, active, onClick }) {
   const hasLive = data?.status === "ok" && data?.title;
+  const eyebrow = !hasLive
+    ? "From Spotify"
+    : data.isPlaying
+      ? "Currently playing on Spotify"
+      : "Last played on Spotify";
   return (
     <button
       key="now-playing"
@@ -427,6 +425,7 @@ function NowPlayingMenuItem({ data, active, onClick }) {
         {hasLive && data.isPlaying && <span className="np-item-dot" aria-hidden="true" />}
       </div>
       <div className="xmb-item-text">
+        <div className={`np-item-eyebrow ${hasLive && data.isPlaying ? "is-live" : ""}`}>{eyebrow}</div>
         <div className="xmb-item-title">{hasLive ? data.title : "Now Playing"}</div>
         <div className="xmb-item-sub">{hasLive ? data.artist : "Live from Spotify"}</div>
       </div>
@@ -566,6 +565,78 @@ function useNowPlaying() {
   return data;
 }
 
+// Generic hook for any Spotify endpoint that returns { status, tracks }.
+function useTrackList(endpoint, interval = 5 * 60 * 1000) {
+  const [data, setData] = useState({ status: "loading" });
+  useEffect(() => {
+    let alive = true;
+    const fetchOnce = async () => {
+      try {
+        const r = await fetch(endpoint, { cache: "no-store" });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const json = await r.json();
+        if (alive) setData(json);
+      } catch (e) {
+        if (alive) setData({ status: "error", error: String(e?.message || e) });
+      }
+    };
+    fetchOnce();
+    const t = setInterval(fetchOnce, interval);
+    return () => { alive = false; clearInterval(t); };
+  }, [endpoint, interval]);
+  return data;
+}
+
+// Shared renderer for any "list of tracks" panel — keeps On Rotation and
+// Recently Played visually identical, just fed by different endpoints.
+function TrackList({ data, emptyText }) {
+  if (data.status === "loading") return <article><p className="lead">Checking the turntable…</p></article>;
+  if (data.status === "needs-scope") {
+    return (
+      <article>
+        <p className="lead">Needs a re-auth.</p>
+        <p>Run <code>node scripts/spotify-auth.js</code> again with the new <code>user-top-read</code> scope, then update <code>SPOTIFY_REFRESH_TOKEN</code> in Vercel.</p>
+      </article>
+    );
+  }
+  if (data.status === "unconfigured") {
+    return <article><p className="lead">Spotify isn't connected yet.</p></article>;
+  }
+  if (data.status !== "ok" || !data.tracks?.length) {
+    return <article><p className="lead">{emptyText || "Nothing here yet."}</p></article>;
+  }
+  return (
+    <article>
+      <ol className="sp-list">
+        {data.tracks.map((t, i) => (
+          <li key={`${t.url || t.title}-${i}`}>
+            <span className="sp-num">{String(i + 1).padStart(2, "0")}</span>
+            {t.albumArt && (
+              <a href={t.url} target="_blank" rel="noreferrer" className="sp-art-link" aria-label={t.title}>
+                <img className="sp-art" src={t.albumArt} alt="" loading="lazy" />
+              </a>
+            )}
+            <div className="sp-text">
+              <a href={t.url} target="_blank" rel="noreferrer" className="sp-title">{t.title}</a>
+              <div className="sp-meta">{t.artist}{t.album ? ` · ${t.album}` : ""}</div>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </article>
+  );
+}
+
+function OnRotation() {
+  const data = useTrackList("/api/top-tracks");
+  return <TrackList data={data} emptyText="Not enough listening data yet." />;
+}
+
+function RecentlyPlayed() {
+  const data = useTrackList("/api/recently-played", 60 * 1000);
+  return <TrackList data={data} emptyText="No recent activity." />;
+}
+
 // Live Spotify "Now Playing" widget — full panel view. Uses the same hook as
 // the inline XMB item; the API's edge cache keeps both pollers cheap.
 function NowPlaying() {
@@ -703,8 +774,9 @@ function ContentBody({ kind, item }) {
     }
 
     // ---------- SOUNDS ----------
-    case "now-playing":
-      return <NowPlaying />;
+    case "now-playing":     return <NowPlaying />;
+    case "on-rotation":     return <OnRotation />;
+    case "recently-played": return <RecentlyPlayed />;
 
     // ---------- LOGBOOK ----------
     case "log-view": {
@@ -722,7 +794,12 @@ function ContentBody({ kind, item }) {
         return true;
       });
       if (filtered.length === 0) {
-        return <article><p>No entries in this range yet.</p></article>;
+        return (
+          <article>
+            <p className="lead">Pending.</p>
+            <p>Updated when there's something worth saving.</p>
+          </article>
+        );
       }
       return (
         <article className="log-list">

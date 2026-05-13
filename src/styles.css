@@ -864,6 +864,22 @@ html, body, #root {
    the music-note icon. A green dot in the corner of the art means actively
    playing right now (vs. last-played). */
 
+/* "Currently playing on Spotify" eyebrow above the track title. Small caps,
+   green when actively playing so the live state reads at a glance. */
+.np-item-eyebrow {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-40);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.np-item.is-active .np-item-eyebrow { color: var(--ink-60); }
+.np-item-eyebrow.is-live { color: #1db954; }
+
 .np-item-icon { position: relative; }
 .np-item-art {
   width: 100%;
@@ -946,6 +962,76 @@ html, body, #root {
   .cp-body .np-row { gap: 14px; }
   .cp-body .np-title { font-size: var(--t-base); }
   .cp-body .np-artist { font-size: var(--t-sm); }
+}
+
+/* ═══ TRACK LISTS (On Rotation, Recently Played) ═══
+   Numbered list of tracks with thumbnail + title + artist · album. Numbers and
+   thumbs are fixed-width so titles line up regardless of art presence. */
+
+.cp-body .sp-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.cp-body .sp-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+}
+.cp-body .sp-num {
+  flex-shrink: 0;
+  width: 22px;
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
+  color: var(--ink-40);
+  text-align: right;
+}
+.cp-body .sp-art-link {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-xs);
+  overflow: hidden;
+  border: 1px solid var(--ink-20);
+  display: block;
+  border-bottom: 1px solid var(--ink-20); /* override .cp-body a underline */
+  padding: 0;
+  transition: transform var(--dur-quick) var(--ease-out);
+}
+.cp-body .sp-art-link:hover { transform: scale(1.05); border-bottom-color: var(--ink-20); }
+.cp-body .sp-art { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cp-body .sp-text { min-width: 0; flex: 1; line-height: 1.25; }
+.cp-body .sp-title {
+  display: block;
+  font-size: var(--t-base);
+  font-weight: 500;
+  color: var(--ink-100);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.cp-body .sp-title:hover { border-bottom: none; }
+.cp-body .sp-meta {
+  font-size: var(--t-sm);
+  color: var(--ink-60);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 600px) {
+  .cp-body .sp-list { gap: 10px; }
+  .cp-body .sp-art-link { width: 34px; height: 34px; }
+  .cp-body .sp-title { font-size: var(--t-sm); }
+  .cp-body .sp-meta { font-size: 11px; }
 }
 
 /* ═══ LOGBOOK ═══
