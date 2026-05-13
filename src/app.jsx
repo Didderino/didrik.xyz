@@ -67,6 +67,8 @@ const CATEGORIES = [
       // slug → folder name under public/img/. count → number of images there.
       // Add new sets by dropping images named 01.jpg, 02.jpg, ... into a new
       // folder and prepending a new entry here.
+      { id: "p-2023", title: "2023", subtitle: "Olympus Mju II · Kodak Gold + B&W", body: "film-roll",
+        slug: "pack-01", count: 32, meta: { camera: "Olympus Mju II", stock: "Kodak Gold + B&W", date: "2023" } },
       { id: "p-japan", title: "Japan", subtitle: "Fuji Rensha · Fuji · 2024", body: "film-roll",
         slug: "roll-01", count: 6, meta: { camera: "Fuji Rensha", stock: "Fuji", date: "Japan, 2024" } },
     ],
