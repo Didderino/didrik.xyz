@@ -23,7 +23,10 @@ async function getAccessToken() {
   const id     = process.env.SPOTIFY_CLIENT_ID;
   const secret = process.env.SPOTIFY_CLIENT_SECRET;
   const refresh = process.env.SPOTIFY_REFRESH_TOKEN;
-  if (!id || !secret || !refresh) return null;
+  // Return a structured result so the caller can surface exactly what failed.
+  if (!id)      return { error: "missing-env", detail: "SPOTIFY_CLIENT_ID is not set on this deployment." };
+  if (!secret)  return { error: "missing-env", detail: "SPOTIFY_CLIENT_SECRET is not set." };
+  if (!refresh) return { error: "missing-env", detail: "SPOTIFY_REFRESH_TOKEN is not set." };
 
   const basic = Buffer.from(`${id}:${secret}`).toString("base64");
   const body = new URLSearchParams({
@@ -38,9 +41,14 @@ async function getAccessToken() {
     },
     body: body.toString(),
   });
-  if (!r.ok) return null;
-  const json = await r.json();
-  return json.access_token || null;
+  const text = await r.text();
+  if (!r.ok) {
+    return { error: "token-refresh-failed", status: r.status, body: text.slice(0, 400) };
+  }
+  let json;
+  try { json = JSON.parse(text); } catch (_) { return { error: "token-parse-failed", body: text.slice(0, 400) }; }
+  if (!json.access_token) return { error: "no-access-token", body: text.slice(0, 400) };
+  return { token: json.access_token };
 }
 
 function shapeTrack(item, isPlaying) {
@@ -60,13 +68,16 @@ export default async function handler(req, res) {
   // Cache at the edge — visitors within 15s share a single Spotify hit.
   res.setHeader("Cache-Control", "public, s-maxage=15, stale-while-revalidate=30");
 
-  const token = await getAccessToken();
-  if (!token) {
+  const auth = await getAccessToken();
+  if (auth.error) {
     return res.status(200).json({
-      status: "unconfigured",
-      message: "Set SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, and SPOTIFY_REFRESH_TOKEN in Vercel env vars.",
+      status: auth.error === "missing-env" ? "unconfigured" : "error",
+      error: auth.error,
+      detail: auth.detail || auth.body || null,
+      httpStatus: auth.status || null,
     });
   }
+  const token = auth.token;
 
   try {
     // 1. Currently playing
