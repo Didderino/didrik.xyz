@@ -3,7 +3,15 @@
 // a tiny optimized bundle.
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { Analytics } from '@vercel/analytics/react';
 import App from './app.jsx';
 import './styles.css';
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <>
+    <App />
+    {/* Vercel Analytics — only beacons in production. Dashboard:
+        https://vercel.com/didriks-vault/didrik-blog/analytics */}
+    <Analytics />
+  </>
+);
