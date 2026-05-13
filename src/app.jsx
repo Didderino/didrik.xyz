@@ -454,12 +454,11 @@ function VideoEmbed({ youtube, vimeo, label }) {
   );
 }
 
-// Live Spotify "Now Playing" widget. Hits /api/now-playing (Vercel serverless
-// function). If env vars aren't set yet, the API returns a helpful "configure
-// me" payload so the panel renders something useful in dev/setup states.
-function NowPlaying() {
+// Tiny shared hook used by both the chip and the panel. Polls /api/now-playing
+// every 30s. The endpoint is edge-cached for 15s so concurrent pollers don't
+// hammer Spotify — they share the cached response.
+function useNowPlaying() {
   const [data, setData] = useState({ status: "loading" });
-
   useEffect(() => {
     let alive = true;
     const fetchOnce = async () => {
@@ -473,9 +472,40 @@ function NowPlaying() {
       }
     };
     fetchOnce();
-    const t = setInterval(fetchOnce, 30 * 1000); // refresh every 30s while the panel is open
+    const t = setInterval(fetchOnce, 30 * 1000);
     return () => { alive = false; clearInterval(t); };
   }, []);
+  return data;
+}
+
+// Persistent chip in the top-right. Shows album art + title + artist whenever
+// Spotify has anything to show. Click jumps the XMB to Sounds → Now Playing.
+function NowPlayingChip({ open, onOpen }) {
+  const data = useNowPlaying();
+  if (!data || data.status !== "ok" || !data.title) return null;
+  return (
+    <button
+      type="button"
+      className={`np-chip ${open ? "is-dim" : ""}`}
+      onClick={onOpen}
+      aria-label={`Open Now Playing — ${data.title} by ${data.artist}`}
+    >
+      {data.albumArt && <img className="np-chip-art" src={data.albumArt} alt="" loading="lazy" />}
+      <div className="np-chip-text">
+        <div className="np-chip-row">
+          <span className={`np-chip-dot ${data.isPlaying ? "is-live" : ""}`} aria-hidden="true" />
+          <span className="np-chip-title">{data.title}</span>
+        </div>
+        <div className="np-chip-artist">{data.artist}</div>
+      </div>
+    </button>
+  );
+}
+
+// Live Spotify "Now Playing" widget — full panel view. Uses the same hook as
+// the corner chip; the API's edge cache keeps both pollers cheap.
+function NowPlaying() {
+  const data = useNowPlaying();
 
   if (data.status === "loading") {
     return <article><p className="lead">Checking the turntable…</p></article>;
@@ -852,6 +882,17 @@ function App() {
     }
   }, [currentItem]);
 
+  // Used by the chip in the top-right corner. Jumps the XMB to Sounds → Now
+  // Playing and opens its content panel in one click.
+  const openNowPlaying = useCallback(() => {
+    const ci = CATEGORIES.findIndex((c) => c.id === "sounds");
+    const ii = CATEGORIES[ci]?.items.findIndex((i) => i.id === "now-playing") ?? 0;
+    if (ci < 0) return;
+    setCatIdx(ci);
+    setItemIdx(ii);
+    setOpen(true);
+  }, []);
+
   // Keyboard navigation
   useEffect(() => {
     const onKey = (e) => {
@@ -933,6 +974,7 @@ function App() {
 
       <Hints open={open} />
       <TouchHint />
+      {menuReady && <NowPlayingChip open={open} onOpen={openNowPlaying} />}
 
       <ContentPanel open={open} item={currentItem} onClose={() => setOpen(false)} />
     </div>
