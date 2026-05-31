@@ -60,7 +60,7 @@ const CATEGORIES = [
     items: [
       {
         id: "sk-everyday", title: "EVERYDAY", subtitle: "Views Limited · Bergen 2023",
-        body: "skate-edit", youtube: "iJQ_2I1RRo4",
+        body: "skate-edit", youtube: "iJQ_2I1RRo4", badge: "/img/skate/everyday.jpg",
         credits: {
           film: "Georg Nuttall",
           cast: ["Amund Jonsson", "Didrik", "Povilas Jucys", "Sander Systad", "August Hågøy", "Elias Heitmann", "Hauk Vangen", "Oliver Nuttall"],
@@ -70,7 +70,7 @@ const CATEGORIES = [
       },
       {
         id: "sk-paristokyo", title: "PARIS TOKYO", subtitle: "Views Limited · Bergen 2022",
-        body: "skate-edit", youtube: "XAoQOppZdf8",
+        body: "skate-edit", youtube: "XAoQOppZdf8", badge: "/img/skate/paristokyo.jpg",
         credits: {
           film: "Georg Nuttall (filmed & edited)",
           cast: ["August Hågøy", "Jonas Bang", "Didrik"],
@@ -80,7 +80,7 @@ const CATEGORIES = [
       },
       {
         id: "sk-who", title: "WHO?", subtitle: "Views Limited · Bergen 2021",
-        body: "skate-edit", youtube: "_zNDGDopFQI",
+        body: "skate-edit", youtube: "_zNDGDopFQI", badge: "/img/skate/who.jpg",
         credits: {
           film: "Georg Nuttall",
           cast: ["Amund Jonsson", "Povilas Jucys", "Sean Stephenson", "Didrik", "August Hågøy", "Jonas Bang", "Herman Bucher", "Andreas Ottesen", "Sander Systad", "Oliver Nuttall", "Elias Heitmann"],
