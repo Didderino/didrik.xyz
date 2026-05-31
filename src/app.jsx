@@ -1260,9 +1260,30 @@ function App() {
   const [phase, skipBoot] = useBootPhase();
   const menuReady = phase === "menu";
 
-  const [catIdx, setCatIdx] = useState(0);
-  const [itemIdx, setItemIdx] = useState(0);
+  // Share-link entry point: when arriving via /p/<slug>, the prebuilt HTML
+  // stub injects window.__initial = "<itemId>" before the bundle loads.
+  // We resolve it to {catIdx, itemIdx} so the SPA boots into that item.
+  const initial = useMemo(() => {
+    if (typeof window === "undefined" || !window.__initial) return null;
+    const target = window.__initial;
+    for (let ci = 0; ci < CATEGORIES.length; ci++) {
+      const ii = CATEGORIES[ci].items.findIndex((i) => i.id === target);
+      if (ii >= 0) return { ci, ii };
+    }
+    return null;
+  }, []);
+
+  const [catIdx, setCatIdx] = useState(initial?.ci ?? 0);
+  const [itemIdx, setItemIdx] = useState(initial?.ii ?? 0);
   const [open, setOpen] = useState(false);
+
+  // Skip the splash and open the panel automatically when we landed on a share page.
+  useEffect(() => {
+    if (initial && menuReady) setOpen(true);
+  }, [initial, menuReady]);
+  useEffect(() => {
+    if (initial && !menuReady) skipBoot();
+  }, [initial, menuReady, skipBoot]);
 
   // Lightbox state (fullscreen image viewer). `null` = closed.
   const [lightbox, setLightbox] = useState(null);
