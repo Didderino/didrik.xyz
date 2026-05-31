@@ -26,7 +26,7 @@ const CATEGORIES = [
   {
     id: "work",
     label: "Work",
-    icon: "cube",
+    icon: "imac",
     items: [
       // Personal projects — design + dev. Newest first. Each item gets its own
       // body case in ContentBody so descriptions can be hand-written per project.
@@ -128,11 +128,18 @@ function Icon({ name, size = 64 }) {
           <path d="M24 30h16M24 38h16M24 46h10" />
         </svg>
       );
-    case "cube":
+    case "imac":
+      // Big desktop monitor — wide screen, narrow neck, foot at the bottom.
       return (
         <svg {...common}>
-          <path d="M32 8 54 20v24L32 56 10 44V20z" fill={fill} />
-          <path d="M32 8v24M32 32 10 20M32 32l22-12" />
+          {/* Monitor body */}
+          <rect x="6" y="10" width="52" height="34" rx="2" fill={fill} />
+          {/* Inner screen bezel */}
+          <rect x="10" y="14" width="44" height="24" rx="1" />
+          {/* Stand neck */}
+          <path d="M28 44 L36 44 L34 52 L30 52 Z" fill={fill} />
+          {/* Base / foot */}
+          <line x1="16" y1="52" x2="48" y2="52" />
         </svg>
       );
     case "image":
@@ -975,14 +982,20 @@ const BOOT_TIMINGS = {
 
 function useBootPhase() {
   const [phase, setPhase] = useState("black");
+  const timersRef = useRef([]);
   useEffect(() => {
-    const t = [
+    timersRef.current = [
       setTimeout(() => setPhase("bg"),   BOOT_TIMINGS.bgReveal),
       setTimeout(() => setPhase("menu"), BOOT_TIMINGS.menuIn),
     ];
-    return () => t.forEach(clearTimeout);
+    return () => timersRef.current.forEach(clearTimeout);
   }, []);
-  return phase;
+  // Skip — clears pending timers and snaps straight to the menu.
+  const skip = useCallback(() => {
+    timersRef.current.forEach(clearTimeout);
+    setPhase("menu");
+  }, []);
+  return [phase, skip];
 }
 
 function Splash({ phase }) {
@@ -1000,12 +1013,25 @@ function Splash({ phase }) {
 }
 
 function App() {
-  const phase = useBootPhase();
+  const [phase, skipBoot] = useBootPhase();
   const menuReady = phase === "menu";
 
   const [catIdx, setCatIdx] = useState(0);
   const [itemIdx, setItemIdx] = useState(0);
   const [open, setOpen] = useState(false);
+
+  // Any input during the boot animation skips straight to the menu.
+  // Once menu is up, the listener detaches so it doesn't interfere with nav.
+  useEffect(() => {
+    if (menuReady) return;
+    const onAny = () => skipBoot();
+    window.addEventListener("keydown", onAny, { once: true });
+    window.addEventListener("pointerdown", onAny, { once: true });
+    return () => {
+      window.removeEventListener("keydown", onAny);
+      window.removeEventListener("pointerdown", onAny);
+    };
+  }, [menuReady, skipBoot]);
 
   const currentCat = CATEGORIES[catIdx];
   const currentItem = currentCat.items[Math.min(itemIdx, currentCat.items.length - 1)];
