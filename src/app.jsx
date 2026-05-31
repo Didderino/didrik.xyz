@@ -521,42 +521,61 @@ function Lightbox({ images, index, onClose, onPrev, onNext }) {
     return () => window.removeEventListener("keydown", onKey, { capture: true });
   }, [onClose, onPrev, onNext, multi]);
 
-  // Touch swipe for mobile
-  const touchRef = useRef({ x: 0, t: 0 });
+  // Touch swipe — record start pos, classify on touchend.
+  // `swipedRef` flags a real swipe so the synthesized click event that fires
+  // after touchend doesn't ALSO trigger the click-outside-to-close handler.
+  const touchRef  = useRef({ x: 0, y: 0, t: 0 });
+  const swipedRef = useRef(false);
   const onTouchStart = (e) => {
     const t = e.touches[0];
-    touchRef.current = { x: t.clientX, t: Date.now() };
+    touchRef.current = { x: t.clientX, y: t.clientY, t: Date.now() };
+    swipedRef.current = false;
   };
   const onTouchEnd = (e) => {
-    if (!multi) return;
     const start = touchRef.current;
     if (!start.t) return;
     const t = e.changedTouches[0];
     const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
     const dt = Date.now() - start.t;
-    touchRef.current = { x: 0, t: 0 };
-    if (dt > 600 || Math.abs(dx) < 40) return;
-    (dx < 0 ? onNext : onPrev)();
+    touchRef.current = { x: 0, y: 0, t: 0 };
+    if (dt > 600) return;
+    // Treat as horizontal swipe only if dx dominates and crosses threshold
+    const absX = Math.abs(dx), absY = Math.abs(dy);
+    if (multi && absX > 40 && absX > absY) {
+      swipedRef.current = true;       // flag for the click handler
+      (dx < 0 ? onNext : onPrev)();
+    }
   };
+
+  const onBackdropClick = (e) => {
+    // Don't close if this click is the tail of a swipe gesture
+    if (swipedRef.current) { swipedRef.current = false; return; }
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  // Stop any taps on buttons from bubbling — keeps the swipe / outside-click
+  // detection on the backdrop honest.
+  const stop = (e) => e.stopPropagation();
 
   return (
     <div
       className="lightbox"
       role="dialog"
       aria-modal="true"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={onBackdropClick}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <button className="lb-close" type="button" onClick={onClose} aria-label="Close">×</button>
+      <button className="lb-close" type="button" onClick={(e) => { stop(e); onClose(); }} aria-label="Close">×</button>
       {multi && (
         <>
-          <button className="lb-prev" type="button" onClick={onPrev} aria-label="Previous">‹</button>
-          <button className="lb-next" type="button" onClick={onNext} aria-label="Next">›</button>
+          <button className="lb-prev" type="button" onClick={(e) => { stop(e); onPrev(); }} aria-label="Previous">‹</button>
+          <button className="lb-next" type="button" onClick={(e) => { stop(e); onNext(); }} aria-label="Next">›</button>
           <div className="lb-count">{index + 1} / {images.length}</div>
         </>
       )}
-      <img className="lb-img" key={current.src} src={current.src} alt={current.alt || ""} />
+      <img className="lb-img" key={current.src} src={current.src} alt={current.alt || ""} onClick={stop} />
     </div>
   );
 }
