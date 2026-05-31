@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "node scripts/build-thumbs.js && vite build && node scripts/build-share-pages.js",
   "cleanUrls": true,
   "images": {
     "sizes": [256, 384, 640, 800, 1080, 1200, 1600, 1920],
