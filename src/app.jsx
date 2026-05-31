@@ -16,11 +16,37 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 const CATEGORIES = [
   {
     id: "about",
-    label: "About",
+    label: "About me",
     icon: "user",
     items: [
       { id: "about-me", title: "About Didrik", subtitle: "23 · bergen / berlin", body: "about" },
       { id: "now", title: "Now", subtitle: "Summer 2026", body: "now" },
+    ],
+  },
+  {
+    id: "work",
+    label: "Work",
+    icon: "cube",
+    items: [
+      // Personal projects — design + dev. Newest first. Each item gets its own
+      // body case in ContentBody so descriptions can be hand-written per project.
+      { id: "w-stue",      title: "stue",                subtitle: "A shared home for your flat · WIP", body: "work-stue" },
+      { id: "w-bullneck",  title: "Bullneck Ballerina",  subtitle: "Website · Berlin post-punk",        body: "work-bullneck" },
+      { id: "w-t3shop",    title: "t3shop",              subtitle: "Website · Shopify Liquid",          body: "work-t3shop" },
+    ],
+  },
+  {
+    id: "pictures",
+    label: "Photos",
+    icon: "image",
+    items: [
+      // slug → folder name under public/img/. count → number of images there.
+      // Add new sets by dropping images named 01.jpg, 02.jpg, ... into a new
+      // folder and prepending a new entry here.
+      { id: "p-2023", title: "2023", subtitle: "Olympus Mju II · Kodak Gold + B&W", body: "film-roll",
+        slug: "pack-01", count: 2, meta: { camera: "Olympus Mju II", stock: "Kodak Gold + B&W", date: "2023" } },
+      { id: "p-japan", title: "Japan", subtitle: "Fuji Rensha · Fuji · 2024", body: "film-roll",
+        slug: "roll-01", count: 6, meta: { camera: "Fuji Rensha", stock: "Fuji", date: "Japan, 2024" } },
     ],
   },
   {
@@ -60,40 +86,14 @@ const CATEGORIES = [
     ],
   },
   {
-    id: "pictures",
-    label: "Pictures",
-    icon: "image",
-    items: [
-      // slug → folder name under public/img/. count → number of images there.
-      // Add new sets by dropping images named 01.jpg, 02.jpg, ... into a new
-      // folder and prepending a new entry here.
-      { id: "p-2023", title: "2023", subtitle: "Olympus Mju II · Kodak Gold + B&W", body: "film-roll",
-        slug: "pack-01", count: 2, meta: { camera: "Olympus Mju II", stock: "Kodak Gold + B&W", date: "2023" } },
-      { id: "p-japan", title: "Japan", subtitle: "Fuji Rensha · Fuji · 2024", body: "film-roll",
-        slug: "roll-01", count: 6, meta: { camera: "Fuji Rensha", stock: "Fuji", date: "Japan, 2024" } },
-    ],
-  },
-  {
     id: "sounds",
-    label: "Sounds",
+    label: "Music",
     icon: "note",
     items: [
       // All three pulled live from Spotify. Setup once with scripts/spotify-auth.js.
       { id: "now-playing",     title: "Now Playing",     subtitle: "Live from Spotify",  body: "now-playing" },
       { id: "on-rotation",     title: "On Rotation",     subtitle: "Top tracks · 4 weeks", body: "on-rotation" },
       { id: "recently-played", title: "Recently Played", subtitle: "Last 10",            body: "recently-played" },
-    ],
-  },
-  {
-    id: "work",
-    label: "Work",
-    icon: "cube",
-    items: [
-      // Personal projects — design + dev. Newest first. Each item gets its own
-      // body case in ContentBody so descriptions can be hand-written per project.
-      { id: "w-stue",      title: "stue",                subtitle: "A shared home for your flat · WIP", body: "work-stue" },
-      { id: "w-bullneck",  title: "Bullneck Ballerina",  subtitle: "Website · Berlin post-punk",        body: "work-bullneck" },
-      { id: "w-t3shop",    title: "t3shop",              subtitle: "Website · Shopify Liquid",          body: "work-t3shop" },
     ],
   },
   {
@@ -1003,7 +1003,7 @@ function App() {
   const phase = useBootPhase();
   const menuReady = phase === "menu";
 
-  const [catIdx, setCatIdx] = useState(1);
+  const [catIdx, setCatIdx] = useState(0);
   const [itemIdx, setItemIdx] = useState(0);
   const [open, setOpen] = useState(false);
 
