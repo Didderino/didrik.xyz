@@ -210,24 +210,36 @@ function ItemIcon({ category, size = 36 }) {
 }
 
 // ---------- BACKGROUND WAVE ----------
-// Gauzy, multi-layered ribbon that drifts horizontally. The path is intentionally
-// wider than the viewBox so translate() reveals new sections as the wave flows.
+// Mathematically periodic ribbon paths — period 1200px exactly matches the
+// CSS animation's translateX(-1200px), so the loop is seamless (the previous
+// hand-drawn paths weren't periodic, which is what caused the visible reset).
+// Each ribbon is a primary sine (full period) + a secondary sine at half-period
+// with 20% amplitude for organic feel; both are periodic over 1200, so the sum
+// is too.
+const RIBBON_PERIOD = 1200;
+function generateWavePath({ baseline, amplitude, phase = 0,
+                            startX = -1200, endX = 4200, step = 30 }) {
+  const pts = [];
+  for (let x = startX; x <= endX; x += step) {
+    const t1 = 2 * Math.PI * (x + phase) / RIBBON_PERIOD;
+    const t2 = 2 * Math.PI * (x + phase * 1.3) / (RIBBON_PERIOD / 2);
+    const y = baseline + amplitude * Math.sin(t1) + amplitude * 0.2 * Math.sin(t2);
+    pts.push(`${x.toFixed(0)},${y.toFixed(1)}`);
+  }
+  return "M" + pts.join(" L");
+}
 const RIBBON_PATHS = [
-  "M-1200,640 C-600,540 0,760 600,560 C1200,360 1800,720 2400,540 C3000,380 3600,640 4200,520",
-  "M-1200,660 C-500,520 100,800 700,540 C1300,340 1900,740 2500,520 C3100,360 3700,660 4200,510",
-  "M-1200,630 C-700,560 -100,750 500,580 C1100,400 1700,700 2300,560 C2900,400 3500,620 4200,540",
-  "M-1200,670 C-650,540 -50,790 550,560 C1150,360 1750,760 2350,540 C2950,380 3550,660 4200,520",
-  "M-1200,645 C-580,545 20,765 620,555 C1220,355 1820,725 2420,535 C3020,375 3620,635 4200,515",
+  generateWavePath({ baseline: 640, amplitude: 120, phase:   0 }),
+  generateWavePath({ baseline: 660, amplitude: 100, phase: 220 }),
+  generateWavePath({ baseline: 630, amplitude: 115, phase: 440 }),
+  generateWavePath({ baseline: 670, amplitude:  90, phase: 110 }),
+  generateWavePath({ baseline: 645, amplitude: 105, phase: 330 }),
 ];
 
-function WaveBackground({ hue, wave, particles }) {
-  const grad = `linear-gradient(160deg,
-    oklch(0.16 0.10 ${hue}) 0%,
-    oklch(0.22 0.13 ${hue + 6}) 45%,
-    oklch(0.32 0.11 ${hue + 14}) 100%)`;
+function WaveBackground({ wave, particles }) {
   return (
     <div className="bg-wrap" aria-hidden="true">
-      <div className="bg-grad" style={{ background: grad }} />
+      <div className="bg-grad" />
       <div className="bg-glow" />
       <svg className="wave" viewBox="0 0 1920 1080" preserveAspectRatio="none">
         <defs>
@@ -1107,7 +1119,7 @@ function TouchHint() {
 // ---------- APP ----------
 // Display constants — used to be tweakable via the Tweaks panel; now baked in
 // since the panel only ever activated inside the dev host, not the live site.
-const HUE = 285;          // twilight purple
+// Background hue lives in CSS (--bg-hue, animated via @keyframes bgHueDrift).
 const WAVE_OPACITY = 0.95;
 const PARTICLES_ON = true;
 
@@ -1276,7 +1288,7 @@ function App() {
   return (
     <LightboxContext.Provider value={lightboxApi}>
       <div className={`root boot-${phase} ${menuReady ? "is-booted" : ""}`}>
-        <WaveBackground hue={HUE} wave={WAVE_OPACITY} particles={PARTICLES_ON} />
+        <WaveBackground wave={WAVE_OPACITY} particles={PARTICLES_ON} />
         <Splash phase={phase} />
 
         <div className={`xmb-stage ${open ? "is-dim" : ""}`}

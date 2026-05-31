@@ -120,7 +120,11 @@ html, body, #root {
 .bg-grad {
   position: absolute;
   inset: 0;
-  transition: background 800ms ease;
+  /* Background hue lives in --bg-hue, registered + animated below. */
+  background: linear-gradient(160deg,
+    oklch(0.16 0.10 var(--bg-hue)) 0%,
+    oklch(0.22 0.13 calc(var(--bg-hue) + 6deg)) 45%,
+    oklch(0.32 0.11 calc(var(--bg-hue) + 14deg)) 100%);
 }
 .bg-grad::after {
   content: "";
@@ -538,6 +542,18 @@ html, body, #root {
 @property --ty     { syntax: '<angle>';  inherits: false; initial-value: 0deg; }
 @property --lift-y { syntax: '<length>'; inherits: false; initial-value: 0px; }
 @property --lift-s { syntax: '<number>'; inherits: false; initial-value: 1; }
+@property --bg-hue { syntax: '<angle>';  inherits: true;  initial-value: 285deg; }
+
+/* Background gradient drifts very slowly across the purple/pink range.
+   ~6 minutes per full cycle, ease-in-out so it lingers at the extremes
+   instead of feeling like a steady rotation. */
+.root { animation: bgHueDrift 360s ease-in-out infinite; }
+@keyframes bgHueDrift {
+  0%   { --bg-hue: 285deg; }   /* twilight purple — the original */
+  33%  { --bg-hue: 252deg; }   /* drifts toward indigo */
+  66%  { --bg-hue: 318deg; }   /* drifts toward magenta */
+  100% { --bg-hue: 285deg; }   /* back to twilight */
+}
 
 /* sticky head — eyebrow + title + sub */
 .cp-head {
