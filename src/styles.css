@@ -1045,6 +1045,63 @@ html, body, #root {
 }
 .xmb-item.is-active .xmb-item-ext { opacity: 0.9; }
 
+/* ═══ WORK / PORTFOLIO SHOTS ═══
+   Single hero screenshot (`.work-shot`) and 3-column row of mobile screens
+   (`.work-shots-3up`). Both reuse the same border + radius as Pictures media. */
+
+.cp-body .work-shot {
+  display: block;
+  margin: 0 0 1.4em;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  border: 1px solid var(--ink-20);
+  background: rgba(0, 0, 0, 0.3);
+  /* Override the default .cp-body a underline */
+  border-bottom: 1px solid var(--ink-20);
+  padding-bottom: 0;
+  transition: box-shadow var(--dur-quick) var(--ease-out);
+}
+.cp-body .work-shot:hover { box-shadow: 0 0 0 1px var(--ink-40); }
+.cp-body .work-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: opacity var(--dur-quick) var(--ease-out);
+}
+.cp-body .work-shot:hover img { opacity: 0.92; }
+
+.cp-body .work-shots-3up {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0 0 1.4em;
+}
+.cp-body .work-shots-3up a {
+  display: block;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  border: 1px solid var(--ink-20);
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid var(--ink-20);   /* override default */
+  padding-bottom: 0;
+  transition: transform var(--dur-quick) var(--ease-out);
+}
+.cp-body .work-shots-3up a:hover {
+  transform: translateY(-2px);
+  border-bottom: 1px solid var(--ink-40);
+}
+.cp-body .work-shots-3up img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 9 / 19;        /* match the iPhone aspect roughly */
+  object-fit: cover;
+}
+
+@media (max-width: 600px) {
+  .cp-body .work-shots-3up { gap: 6px; }
+}
+
 /* Placeholders — diagonal stripe pattern with a centered mono label.
    Used for empty media slots until real assets land. */
 .placeholder {

@@ -776,6 +776,11 @@ function ContentBody({ kind, item }) {
     case "work-stue":
       return (
         <article>
+          <div className="work-shots work-shots-3up">
+            <a href="/img/work-stue/01.jpg" target="_blank" rel="noreferrer"><img src="/img/work-stue/01.jpg" alt="stue — landing" loading="lazy" /></a>
+            <a href="/img/work-stue/02.jpg" target="_blank" rel="noreferrer"><img src="/img/work-stue/02.jpg" alt="stue — dashboard" loading="lazy" /></a>
+            <a href="/img/work-stue/03.jpg" target="_blank" rel="noreferrer"><img src="/img/work-stue/03.jpg" alt="stue — budget" loading="lazy" /></a>
+          </div>
           <p className="lead">A shared home for your flat.</p>
           <p>Shopping, cleaning, and money — together, quietly. An app for the day-to-day in a shared flat.</p>
           <dl className="contact-list">
@@ -787,6 +792,9 @@ function ContentBody({ kind, item }) {
     case "work-bullneck":
       return (
         <article>
+          <a href="/img/work-bullneck/01.jpg" target="_blank" rel="noreferrer" className="work-shot">
+            <img src="/img/work-bullneck/01.jpg" alt="Bullneck Ballerina — site hero" loading="lazy" />
+          </a>
           <p className="lead">Bullneck Ballerina — Berlin post-punk.</p>
           <p>Designed and developed the band's site.</p>
           <dl className="contact-list">
@@ -798,6 +806,9 @@ function ContentBody({ kind, item }) {
     case "work-t3shop":
       return (
         <article>
+          <a href="/img/work-t3shop/01.jpg" target="_blank" rel="noreferrer" className="work-shot">
+            <img src="/img/work-t3shop/01.jpg" alt="t3shop.no — product grid" loading="lazy" />
+          </a>
           <p className="lead">t3shop.no</p>
           <p>Designed and developed a custom Shopify Liquid theme.</p>
           <dl className="contact-list">
