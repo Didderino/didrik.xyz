@@ -228,12 +228,17 @@ function generateWavePath({ baseline, amplitude, phase = 0,
   }
   return "M" + pts.join(" L");
 }
+// Tight cluster — same shape, slightly offset, like the PS3 XMB ribbon band.
+// Each layer differs by only a few px in baseline and a small phase shift, so
+// stacked together they read as one cohesive wave rather than five scattered
+// ones. Stroke width + opacity per layer (set in CSS) is what gives the
+// halo-to-hairline gradient look.
 const RIBBON_PATHS = [
-  generateWavePath({ baseline: 640, amplitude: 120, phase:   0 }),
-  generateWavePath({ baseline: 660, amplitude: 100, phase: 220 }),
-  generateWavePath({ baseline: 630, amplitude: 115, phase: 440 }),
-  generateWavePath({ baseline: 670, amplitude:  90, phase: 110 }),
-  generateWavePath({ baseline: 645, amplitude: 105, phase: 330 }),
+  generateWavePath({ baseline: 638, amplitude: 88, phase:   0 }),
+  generateWavePath({ baseline: 642, amplitude: 90, phase:  35 }),
+  generateWavePath({ baseline: 640, amplitude: 92, phase:  70 }),
+  generateWavePath({ baseline: 641, amplitude: 89, phase:  20 }),
+  generateWavePath({ baseline: 639, amplitude: 91, phase:  50 }),
 ];
 
 function WaveBackground({ wave, particles }) {
