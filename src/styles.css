@@ -1045,6 +1045,118 @@ html, body, #root {
 }
 .xmb-item.is-active .xmb-item-ext { opacity: 0.9; }
 
+/* ═══ LIGHTBOX ═══
+   Fullscreen image viewer. Z-index above everything (content panel = 20).
+   Backdrop blur + slight tint of the page bg color so the surrounding UI is
+   still faintly visible. */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(15, 12, 25, 0.92);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  backdrop-filter: blur(14px) saturate(120%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5vh 6vw;
+  box-sizing: border-box;
+  animation: lbFade 220ms ease both;
+  touch-action: none;   /* lets us own swipe gestures without page-scroll fights */
+}
+@keyframes lbFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.lb-img {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: var(--r-sm);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.65);
+  animation: lbSwap 220ms var(--ease-out) both;
+}
+@keyframes lbSwap {
+  from { opacity: 0; transform: scale(0.985); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Close button — top-right */
+.lb-close {
+  position: absolute;
+  top: 22px;
+  right: 24px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--ink-20);
+  color: var(--ink-100);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: inherit;
+  transition: background var(--dur-quick) var(--ease-out),
+              transform var(--dur-quick) var(--ease-out);
+}
+.lb-close:hover { background: rgba(255, 255, 255, 0.18); transform: scale(1.05); }
+
+/* Prev / next arrows — vertically centered on the sides */
+.lb-prev, .lb-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--ink-20);
+  color: var(--ink-100);
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 3px 0;   /* nudge ‹ › glyphs to optical center */
+  font-family: inherit;
+  transition: background var(--dur-quick) var(--ease-out),
+              transform var(--dur-quick) var(--ease-out);
+}
+.lb-prev { left: 22px; }
+.lb-next { right: 22px; }
+.lb-prev:hover, .lb-next:hover { background: rgba(255, 255, 255, 0.20); }
+.lb-prev:hover { transform: translateY(-50%) translateX(-2px); }
+.lb-next:hover { transform: translateY(-50%) translateX(2px); }
+
+/* "n / total" counter — bottom center */
+.lb-count {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--t-xs);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-60);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 600px) {
+  .lightbox { padding: 5vh 3vw; }
+  .lb-close { top: 14px; right: 14px; width: 32px; height: 32px; font-size: 18px; }
+  .lb-prev, .lb-next { width: 38px; height: 38px; font-size: 22px; }
+  .lb-prev { left: 10px; }
+  .lb-next { right: 10px; }
+  .lb-count { bottom: 14px; }
+}
+
 /* ═══ WORK / PORTFOLIO SHOTS ═══
    Single hero screenshot (`.work-shot`) and 3-column row of mobile screens
    (`.work-shots-3up`). Both reuse the same border + radius as Pictures media. */

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback, useContext, createContext } from 'react';
 
 // ---------- DATA ----------
 // Item shapes:
@@ -491,6 +491,157 @@ function XMB({ catIdx, itemIdx, onSelectCat, onSelectItem, onOpen, nowPlaying })
   );
 }
 
+// ---------- LIGHTBOX ----------
+// Fullscreen image viewer with prev/next navigation. Context-based so any
+// component below App can call `useLightbox().open(images, index)` to open it.
+// Closes on Esc / × / click-outside. Multi-image: arrows + ‹ › buttons + swipe.
+const LightboxContext = createContext(null);
+function useLightbox() { return useContext(LightboxContext); }
+
+function Lightbox({ images, index, onClose, onPrev, onNext }) {
+  const current = images[index];
+  const multi = images.length > 1;
+
+  // Keyboard nav. Capture phase + stopImmediatePropagation so other window
+  // listeners (e.g. ContentPanel's Esc-to-close) don't double-fire on the
+  // same key.
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        onClose();
+      } else if (multi && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        (e.key === "ArrowRight" ? onNext : onPrev)();
+      }
+    };
+    window.addEventListener("keydown", onKey, { capture: true });
+    return () => window.removeEventListener("keydown", onKey, { capture: true });
+  }, [onClose, onPrev, onNext, multi]);
+
+  // Touch swipe for mobile
+  const touchRef = useRef({ x: 0, t: 0 });
+  const onTouchStart = (e) => {
+    const t = e.touches[0];
+    touchRef.current = { x: t.clientX, t: Date.now() };
+  };
+  const onTouchEnd = (e) => {
+    if (!multi) return;
+    const start = touchRef.current;
+    if (!start.t) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dt = Date.now() - start.t;
+    touchRef.current = { x: 0, t: 0 };
+    if (dt > 600 || Math.abs(dx) < 40) return;
+    (dx < 0 ? onNext : onPrev)();
+  };
+
+  return (
+    <div
+      className="lightbox"
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      <button className="lb-close" type="button" onClick={onClose} aria-label="Close">×</button>
+      {multi && (
+        <>
+          <button className="lb-prev" type="button" onClick={onPrev} aria-label="Previous">‹</button>
+          <button className="lb-next" type="button" onClick={onNext} aria-label="Next">›</button>
+          <div className="lb-count">{index + 1} / {images.length}</div>
+        </>
+      )}
+      <img className="lb-img" key={current.src} src={current.src} alt={current.alt || ""} />
+    </div>
+  );
+}
+
+// Click handler that opens the lightbox at a given index. Cmd/Ctrl/Shift +
+// click still opens the image in a new tab (standard a11y/browser behavior).
+function useImageClick() {
+  const lb = useLightbox();
+  return useCallback((images, index) => (e) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+    e.preventDefault();
+    lb?.open(images, index);
+  }, [lb]);
+}
+
+// Single hero image — opens a 1-item lightbox (no prev/next).
+function WorkShotHero({ src, alt }) {
+  const onImg = useImageClick();
+  const images = useMemo(() => [{ src, alt }], [src, alt]);
+  return (
+    <a className="work-shot" href={src} onClick={onImg(images, 0)}>
+      <img src={src} alt={alt} loading="lazy" />
+    </a>
+  );
+}
+
+// Film roll gallery — generates the image list from the item's slug + count,
+// then renders a clickable grid that opens the lightbox at the right index.
+function FilmRoll({ item }) {
+  const slug = item?.slug;
+  const count = item?.count || 0;
+  const meta = item?.meta || {};
+  const images = useMemo(() => {
+    return Array.from({ length: count }).map((_, i) => ({
+      src: `/img/${slug}/${String(i + 1).padStart(2, "0")}.jpg`,
+      alt: `${item?.title || "scan"} – scan ${i + 1}`,
+    }));
+  }, [slug, count, item?.title]);
+  const onImg = useImageClick();
+
+  if (count === 0) {
+    return (
+      <article>
+        <p className="lead">No scans uploaded yet.</p>
+        <div className="photo-grid">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Placeholder key={i} label={`scan ${String(i + 1).padStart(2, "0")}`} height={150} />
+          ))}
+        </div>
+        <p className="caption small">
+          Drop scans in <code>/img/{slug}/</code> as <code>01.jpg</code>, <code>02.jpg</code>, … then bump <code>count</code> in the data and redeploy.
+        </p>
+      </article>
+    );
+  }
+
+  return (
+    <article>
+      <div className="photo-grid">
+        {images.map((img, i) => (
+          <a key={img.src} href={img.src} onClick={onImg(images, i)} className="film-scan-link">
+            <img src={img.src} alt={img.alt} className="film-scan" loading="lazy" />
+          </a>
+        ))}
+      </div>
+      <p className="caption">{meta.camera} · {meta.stock} · {meta.date}</p>
+    </article>
+  );
+}
+
+// 3-up row of mobile screenshots — clicking any opens the lightbox at that
+// index so visitors can arrow through them.
+function WorkShots3Up({ images }) {
+  const onImg = useImageClick();
+  return (
+    <div className="work-shots work-shots-3up">
+      {images.map((img, i) => (
+        <a key={img.src} href={img.src} onClick={onImg(images, i)}>
+          <img src={img.src} alt={img.alt} loading="lazy" />
+        </a>
+      ))}
+    </div>
+  );
+}
+
 // ---------- CONTENT PANELS ----------
 function Placeholder({ label, height = 220 }) {
   return (
@@ -738,41 +889,8 @@ function ContentBody({ kind, item }) {
     }
 
     // ---------- FILM ROLLS ----------
-    case "film-roll": {
-      const slug = item?.slug;
-      const count = item?.count || 0;
-      const meta = item?.meta || {};
-      if (count === 0) {
-        return (
-          <article>
-            <p className="lead">No scans uploaded yet.</p>
-            <div className="photo-grid">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Placeholder key={i} label={`scan ${String(i + 1).padStart(2, "0")}`} height={150} />
-              ))}
-            </div>
-            <p className="caption small">
-              Drop scans in <code>/img/{slug}/</code> as <code>01.jpg</code>, <code>02.jpg</code>, … then bump <code>count</code> in the data and redeploy.
-            </p>
-          </article>
-        );
-      }
-      return (
-        <article>
-          <div className="photo-grid">
-            {Array.from({ length: count }).map((_, i) => {
-              const file = `${String(i + 1).padStart(2, "0")}.jpg`;
-              return (
-                <a key={i} href={`/img/${slug}/${file}`} target="_blank" rel="noreferrer" className="film-scan-link">
-                  <img src={`/img/${slug}/${file}`} alt={`${item.title} – scan ${i + 1}`} className="film-scan" loading="lazy" />
-                </a>
-              );
-            })}
-          </div>
-          <p className="caption">{meta.camera} · {meta.stock} · {meta.date}</p>
-        </article>
-      );
-    }
+    case "film-roll":
+      return <FilmRoll item={item} />;
 
     // ---------- SOUNDS ----------
     case "now-playing":     return <NowPlaying />;
@@ -783,11 +901,11 @@ function ContentBody({ kind, item }) {
     case "work-stue":
       return (
         <article>
-          <div className="work-shots work-shots-3up">
-            <a href="/img/work-stue/01.jpg" target="_blank" rel="noreferrer"><img src="/img/work-stue/01.jpg" alt="stue — landing" loading="lazy" /></a>
-            <a href="/img/work-stue/02.jpg" target="_blank" rel="noreferrer"><img src="/img/work-stue/02.jpg" alt="stue — dashboard" loading="lazy" /></a>
-            <a href="/img/work-stue/03.jpg" target="_blank" rel="noreferrer"><img src="/img/work-stue/03.jpg" alt="stue — budget" loading="lazy" /></a>
-          </div>
+          <WorkShots3Up images={[
+            { src: "/img/work-stue/01.jpg", alt: "stue — landing" },
+            { src: "/img/work-stue/02.jpg", alt: "stue — dashboard" },
+            { src: "/img/work-stue/03.jpg", alt: "stue — budget" },
+          ]} />
           <p className="lead">A shared home for your flat.</p>
           <p>Shopping, cleaning, and money — together, quietly. An app for the day-to-day in a shared flat.</p>
           <dl className="contact-list">
@@ -799,9 +917,7 @@ function ContentBody({ kind, item }) {
     case "work-bullneck":
       return (
         <article>
-          <a href="/img/work-bullneck/01.jpg" target="_blank" rel="noreferrer" className="work-shot">
-            <img src="/img/work-bullneck/01.jpg" alt="Bullneck Ballerina — site hero" loading="lazy" />
-          </a>
+          <WorkShotHero src="/img/work-bullneck/01.jpg" alt="Bullneck Ballerina — site hero" />
           <p className="lead">Bullneck Ballerina — Berlin post-punk.</p>
           <p>Designed and developed the band's site.</p>
           <dl className="contact-list">
@@ -813,9 +929,7 @@ function ContentBody({ kind, item }) {
     case "work-t3shop":
       return (
         <article>
-          <a href="/img/work-t3shop/01.jpg" target="_blank" rel="noreferrer" className="work-shot">
-            <img src="/img/work-t3shop/01.jpg" alt="t3shop.no — product grid" loading="lazy" />
-          </a>
+          <WorkShotHero src="/img/work-t3shop/01.jpg" alt="t3shop.no — product grid" />
           <p className="lead">t3shop.no</p>
           <p>Designed and developed a custom Shopify Liquid theme.</p>
           <dl className="contact-list">
@@ -837,6 +951,7 @@ const TILT_MAX = 1.6;
 
 function ContentPanel({ open, item, onClose }) {
   const innerRef = useRef(null);
+  const lb = useLightbox();
   // Only run the parallax on devices with a real cursor. Touch devices fire
   // mousemove on tap in some browsers and the tilt looks jarring there.
   const canTilt = useMemo(
@@ -847,6 +962,7 @@ function ContentPanel({ open, item, onClose }) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => {
+      if (lb?.state) return;  // Lightbox owns input while it's open
       if (e.key === "Escape" || e.key === "Backspace") {
         e.preventDefault();
         onClose();
@@ -854,7 +970,7 @@ function ContentPanel({ open, item, onClose }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [open, onClose, lb?.state]);
 
   // Reset tilt whenever the card content changes (key change re-mounts the
   // node and the cpRise animation runs fresh).
@@ -1020,6 +1136,14 @@ function App() {
   const [itemIdx, setItemIdx] = useState(0);
   const [open, setOpen] = useState(false);
 
+  // Lightbox state (fullscreen image viewer). `null` = closed.
+  const [lightbox, setLightbox] = useState(null);
+  const openLightbox  = useCallback((images, index = 0) => setLightbox({ images, index }), []);
+  const closeLightbox = useCallback(() => setLightbox(null), []);
+  const nextLightbox  = useCallback(() => setLightbox(s => s ? { ...s, index: (s.index + 1) % s.images.length } : null), []);
+  const prevLightbox  = useCallback(() => setLightbox(s => s ? { ...s, index: (s.index - 1 + s.images.length) % s.images.length } : null), []);
+  const lightboxApi   = useMemo(() => ({ state: lightbox, open: openLightbox, close: closeLightbox }), [lightbox, openLightbox, closeLightbox]);
+
   // Any input during the boot animation skips straight to the menu.
   // Once menu is up, the listener detaches so it doesn't interfere with nav.
   useEffect(() => {
@@ -1121,29 +1245,41 @@ function App() {
   };
 
   return (
-    <div className={`root boot-${phase} ${menuReady ? "is-booted" : ""}`}>
-      <WaveBackground hue={HUE} wave={WAVE_OPACITY} particles={PARTICLES_ON} />
-      <Splash phase={phase} />
+    <LightboxContext.Provider value={lightboxApi}>
+      <div className={`root boot-${phase} ${menuReady ? "is-booted" : ""}`}>
+        <WaveBackground hue={HUE} wave={WAVE_OPACITY} particles={PARTICLES_ON} />
+        <Splash phase={phase} />
 
-      <div className={`xmb-stage ${open ? "is-dim" : ""}`}
-           onTouchStart={onTouchStart}
-           onTouchEnd={onTouchEnd}>
-        <XMB
-          catIdx={catIdx}
-          itemIdx={itemIdx}
-          onSelectCat={(ci) => { setCatIdx(ci); setItemIdx(0); }}
-          onSelectItem={(ci, ii) => { setCatIdx(ci); setItemIdx(ii); }}
-          onOpen={openItem}
-          nowPlaying={nowPlaying}
-        />
+        <div className={`xmb-stage ${open ? "is-dim" : ""}`}
+             onTouchStart={onTouchStart}
+             onTouchEnd={onTouchEnd}>
+          <XMB
+            catIdx={catIdx}
+            itemIdx={itemIdx}
+            onSelectCat={(ci) => { setCatIdx(ci); setItemIdx(0); }}
+            onSelectItem={(ci, ii) => { setCatIdx(ci); setItemIdx(ii); }}
+            onOpen={openItem}
+            nowPlaying={nowPlaying}
+          />
+        </div>
+
+        <StatusBar open={open} />
+        <Hints open={open} />
+        <TouchHint />
+
+        <ContentPanel open={open} item={currentItem} onClose={() => setOpen(false)} />
+
+        {lightbox && (
+          <Lightbox
+            images={lightbox.images}
+            index={lightbox.index}
+            onClose={closeLightbox}
+            onPrev={prevLightbox}
+            onNext={nextLightbox}
+          />
+        )}
       </div>
-
-      <StatusBar open={open} />
-      <Hints open={open} />
-      <TouchHint />
-
-      <ContentPanel open={open} item={currentItem} onClose={() => setOpen(false)} />
-    </div>
+    </LightboxContext.Provider>
   );
 }
 
