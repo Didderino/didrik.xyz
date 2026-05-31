@@ -602,8 +602,52 @@ function Lightbox({ images, index, onClose, onPrev, onNext }) {
           <div className="lb-count">{index + 1} / {images.length}</div>
         </>
       )}
-      <img className="lb-img" key={current.src} src={current.src} alt={current.alt || ""} onClick={stop} />
+      <OptimizedImage
+        className="lb-img"
+        key={current.src}
+        src={current.src}
+        alt={current.alt || ""}
+        onClick={stop}
+        widths={[800, 1080, 1200, 1600, 1920]}
+        sizes="(max-width: 600px) 94vw, 88vw"
+        quality={82}
+      />
     </div>
+  );
+}
+
+// Vercel's image-optimization endpoint: emits AVIF/WebP from the original
+// asset, sized to whatever the device actually needs. Wraps a plain <img> with
+// a generated srcset; the browser picks the size from `sizes` + DPR.
+//
+// Skipped during `vite dev` since the /_vercel/image endpoint only exists on
+// Vercel's edge — locally we just serve the original.
+const VERCEL_OPTIMIZE = !import.meta.env.DEV;
+const DEFAULT_SIZES = "100vw";
+
+function OptimizedImage({
+  src,
+  alt,
+  widths = [400, 800, 1200, 1600],
+  sizes = DEFAULT_SIZES,
+  quality = 75,
+  ...rest
+}) {
+  if (!VERCEL_OPTIMIZE) {
+    return <img src={src} alt={alt} loading="lazy" {...rest} />;
+  }
+  const optUrl = (w) =>
+    `/_vercel/image?url=${encodeURIComponent(src)}&w=${w}&q=${quality}`;
+  const srcSet = widths.map((w) => `${optUrl(w)} ${w}w`).join(", ");
+  return (
+    <img
+      src={optUrl(widths[widths.length - 1])}  // fallback to largest if srcset isn't supported
+      srcSet={srcSet}
+      sizes={sizes}
+      alt={alt}
+      loading="lazy"
+      {...rest}
+    />
   );
 }
 
@@ -624,7 +668,12 @@ function WorkShotHero({ src, alt }) {
   const images = useMemo(() => [{ src, alt }], [src, alt]);
   return (
     <a className="work-shot" href={src} onClick={onImg(images, 0)}>
-      <img src={src} alt={alt} loading="lazy" />
+      <OptimizedImage
+        src={src}
+        alt={alt}
+        widths={[400, 640, 800, 1080, 1280]}
+        sizes="(max-width: 600px) 92vw, 640px"
+      />
     </a>
   );
 }
@@ -664,7 +713,13 @@ function FilmRoll({ item }) {
       <div className="photo-grid">
         {images.map((img, i) => (
           <a key={img.src} href={img.src} onClick={onImg(images, i)} className="film-scan-link">
-            <img src={img.src} alt={img.alt} className="film-scan" loading="lazy" />
+            <OptimizedImage
+              src={img.src}
+              alt={img.alt}
+              className="film-scan"
+              widths={[256, 384, 640]}
+              sizes="(max-width: 600px) 45vw, (max-width: 880px) 30vw, 200px"
+            />
           </a>
         ))}
       </div>
@@ -681,7 +736,12 @@ function WorkShots3Up({ images }) {
     <div className="work-shots work-shots-3up">
       {images.map((img, i) => (
         <a key={img.src} href={img.src} onClick={onImg(images, i)}>
-          <img src={img.src} alt={img.alt} loading="lazy" />
+          <OptimizedImage
+            src={img.src}
+            alt={img.alt}
+            widths={[256, 384, 640, 800]}
+            sizes="(max-width: 600px) 30vw, 200px"
+          />
         </a>
       ))}
     </div>
