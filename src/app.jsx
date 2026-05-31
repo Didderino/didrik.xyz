@@ -671,7 +671,7 @@ function WorkShotHero({ src, alt }) {
       <OptimizedImage
         src={src}
         alt={alt}
-        widths={[400, 640, 800, 1080, 1280]}
+        widths={[384, 640, 800, 1080, 1200]}
         sizes="(max-width: 600px) 92vw, 640px"
       />
     </a>
