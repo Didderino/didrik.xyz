@@ -1,5 +1,6 @@
 {
-  "buildCommand": "node scripts/build-thumbs.js && vite build && node scripts/build-share-pages.js",
+  "buildCommand": "node scripts/build-thumbs.js && vite build && node scripts/build-share-pages.js && echo 'BUILD-MARKER:' $(date +%s) > dist/.build-marker",
+  "outputDirectory": "dist",
   "cleanUrls": true,
   "images": {
     "sizes": [256, 384, 640, 800, 1080, 1200, 1600, 1920],
