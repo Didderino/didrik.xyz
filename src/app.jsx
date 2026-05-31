@@ -28,11 +28,11 @@ const CATEGORIES = [
     label: "Work",
     icon: "imac",
     items: [
-      // Personal projects — design + dev. Newest first. Each item gets its own
-      // body case in ContentBody so descriptions can be hand-written per project.
-      { id: "w-stue",      title: "stue",                subtitle: "A shared home for your flat · WIP", body: "work-stue" },
-      { id: "w-bullneck",  title: "Bullneck Ballerina",  subtitle: "Website · Berlin post-punk",        body: "work-bullneck" },
-      { id: "w-t3shop",    title: "t3shop",              subtitle: "Website · Shopify Liquid",          body: "work-t3shop" },
+      // `badge` overrides the category icon in the menu list — each work item
+      // shows its own favicon under a small glassy frame instead of the iMac glyph.
+      { id: "w-stue",      title: "stue",                subtitle: "A shared home for your flat · WIP", body: "work-stue",     badge: "/img/work-stue/favicon.png" },
+      { id: "w-bullneck",  title: "Bullneck Ballerina",  subtitle: "Website · Berlin post-punk",        body: "work-bullneck", badge: "/img/work-bullneck/favicon.png" },
+      { id: "w-t3shop",    title: "t3shop",              subtitle: "Website · Shopify Liquid",          body: "work-t3shop",   badge: "/img/work-t3shop/favicon.png" },
     ],
   },
   {
@@ -470,7 +470,13 @@ function XMB({ catIdx, itemIdx, onSelectCat, onSelectItem, onOpen, nowPlaying })
                       tabIndex={-1}
                     >
                       <div className="xmb-item-icon">
-                        <ItemIcon category={cat.id} size={36} />
+                        {item.badge ? (
+                          <span className="xmb-item-favicon" aria-hidden="true">
+                            <img src={item.badge} alt="" loading="lazy" />
+                          </span>
+                        ) : (
+                          <ItemIcon category={cat.id} size={36} />
+                        )}
                       </div>
                       <div className="xmb-item-text">
                         <div className="xmb-item-title">
@@ -589,18 +595,6 @@ function useImageClick() {
     e.preventDefault();
     lb?.open(images, index);
   }, [lb]);
-}
-
-// Glassy favicon badge that sits at the top of each Work panel — gives the
-// project a visual identity beyond just text. The glass effect is layered over
-// the favicon (rounded mask + rim highlight + soft overlay) so it never reads
-// as a flat sticker.
-function WorkBadge({ src, alt }) {
-  return (
-    <div className="work-badge" aria-hidden="true">
-      <img src={src} alt={alt} loading="lazy" />
-    </div>
-  );
 }
 
 // Single hero image — opens a 1-item lightbox (no prev/next).
@@ -932,7 +926,6 @@ function ContentBody({ kind, item }) {
     case "work-stue":
       return (
         <article>
-          <WorkBadge src="/img/work-stue/favicon.png" alt="stue mark" />
           <WorkShots3Up images={[
             { src: "/img/work-stue/01.jpg", alt: "stue — landing" },
             { src: "/img/work-stue/02.jpg", alt: "stue — dashboard" },
@@ -949,7 +942,6 @@ function ContentBody({ kind, item }) {
     case "work-bullneck":
       return (
         <article>
-          <WorkBadge src="/img/work-bullneck/favicon.png" alt="Bullneck Ballerina mark" />
           <WorkShotHero src="/img/work-bullneck/01.jpg" alt="Bullneck Ballerina — site hero" />
           <p className="lead">Bullneck Ballerina — Berlin post-punk.</p>
           <p>Designed and developed the band's site.</p>
@@ -962,7 +954,6 @@ function ContentBody({ kind, item }) {
     case "work-t3shop":
       return (
         <article>
-          <WorkBadge src="/img/work-t3shop/favicon.png" alt="t3shop mark" />
           <WorkShotHero src="/img/work-t3shop/01.jpg" alt="t3shop.no — product grid" />
           <p className="lead">t3shop.no</p>
           <p>Designed and developed a custom Shopify Liquid theme.</p>
