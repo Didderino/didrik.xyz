@@ -25,7 +25,7 @@ const CATEGORIES = [
   },
   {
     id: "work",
-    label: "Work",
+    label: "Projects",
     icon: "imac",
     items: [
       // `badge` overrides the category icon in the menu list — each work item
