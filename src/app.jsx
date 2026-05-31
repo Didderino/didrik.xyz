@@ -387,6 +387,28 @@ function AnalogClock({ size = 16, hour, minute }) {
   );
 }
 
+// Bottom-left visitor counter. Pings /api/count once on mount, which
+// increments the running total in Upstash Redis. Renders nothing until the
+// API responds — and silently nothing if Upstash isn't configured yet.
+function VisitorCount({ open }) {
+  const [count, setCount] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/count", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => { if (alive && data.status === "ok" && data.count) setCount(data.count); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+  if (count == null) return null;
+  return (
+    <div className={`visitor-count ${open ? "is-dim" : ""}`} aria-label={`Visitor ${count}`}>
+      <span className="vc-eyebrow">visitor</span>
+      <span className="vc-num">№ {count.toLocaleString()}</span>
+    </div>
+  );
+}
+
 // Top-right pill: analog clock + date + 24-hour time. Dims (along with the
 // XMB) when a content panel is open.
 function StatusBar({ open }) {
@@ -1370,6 +1392,7 @@ function App() {
         </div>
 
         <StatusBar open={open} />
+        <VisitorCount open={open} />
         <Hints open={open} />
         <TouchHint />
 
