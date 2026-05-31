@@ -1034,26 +1034,6 @@ html, body, #root {
   .cp-body .sp-meta { font-size: 11px; }
 }
 
-/* ═══ LOGBOOK ═══
-   List of dated entries, each separated by a thin rule. */
-
-.cp-body .log-list { display: block; }
-.cp-body .log-entry {
-  padding: 22px 0 26px;
-  border-bottom: 1px solid var(--rule);
-}
-.cp-body .log-entry:first-child { padding-top: 0; }
-.cp-body .log-entry:last-child  { border-bottom: 0; padding-bottom: 0; }
-.cp-body .log-date {
-  font-size: var(--t-sm);
-  font-weight: 400;
-  letter-spacing: var(--tr-widest);
-  text-transform: uppercase;
-  color: var(--ink-40);
-  margin: 0 0 0.8em;
-}
-.cp-body .log-body p { margin: 0 0 0.8em; }
-.cp-body .log-body p:last-child { margin-bottom: 0; }
 
 /* small ↗ glyph next to external-link items in the XMB list */
 .xmb-item-ext {
@@ -1272,7 +1252,6 @@ html, body, #root {
   .cp-body article    { font-size: 13px; }
   .cp-body .lead      { font-size: 14px; margin-bottom: 1em; }
   .cp-body h2         { font-size: 16px; margin: 1.2em 0 0.4em; }
-  .cp-body .log-date  { font-size: 10px; letter-spacing: 0.24em; }
   .cp-body .contact-list { grid-template-columns: 76px 1fr; gap: 6px 12px; }
   .cp-body .contact-list dt { font-size: 10px; }
   .cp-body .caption       { font-size: 11px; }

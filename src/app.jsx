@@ -85,15 +85,15 @@ const CATEGORIES = [
     ],
   },
   {
-    id: "logbook",
-    label: "Logbook",
-    icon: "doc",
+    id: "work",
+    label: "Work",
+    icon: "cube",
     items: [
-      // Logbook items are read-only views into LOG_ENTRIES below — you don't need
-      // to touch this list when you write a new entry, just add to LOG_ENTRIES.
-      { id: "log-recent",  title: "Recent",      subtitle: "Last few weeks", body: "log-view", range: "recent" },
-      { id: "log-2026",    title: "2026",        subtitle: "This year",      body: "log-view", range: "2026" },
-      { id: "log-archive", title: "Archive",     subtitle: "Everything",     body: "log-view", range: "all" },
+      // Personal projects — design + dev. Newest first. Each item gets its own
+      // body case in ContentBody so descriptions can be hand-written per project.
+      { id: "w-stue",      title: "stue",                subtitle: "A shared home for your flat · WIP", body: "work-stue" },
+      { id: "w-bullneck",  title: "Bullneck Ballerina",  subtitle: "Website · Berlin post-punk",        body: "work-bullneck" },
+      { id: "w-t3shop",    title: "t3shop",              subtitle: "Website · Shopify Liquid",          body: "work-t3shop" },
     ],
   },
   {
@@ -106,18 +106,6 @@ const CATEGORIES = [
   },
 ];
 
-// ---------- LOGBOOK ENTRIES ----------
-// To add an entry: copy the example block, change date + body, paste at the
-// top of the array. Body can be a JSX fragment (use <p>, <ul>, <em>, <code>,
-// <a> etc.) or just a string for short one-liners. Dates are sorted
-// newest-first automatically.
-//
-// Example shape:
-//   {
-//     date: "2026-05-12",
-//     body: <><p>Skated Operaen. Light was good.</p></>,
-//   },
-const LOG_ENTRIES = [];
 
 // ---------- ICONS (original glyphs) ----------
 function Icon({ name, size = 64 }) {
@@ -784,51 +772,45 @@ function ContentBody({ kind, item }) {
     case "on-rotation":     return <OnRotation />;
     case "recently-played": return <RecentlyPlayed />;
 
-    // ---------- LOGBOOK ----------
-    case "log-view": {
-      const range = item?.range || "recent";
-      const sorted = [...LOG_ENTRIES].sort((a, b) => (a.date < b.date ? 1 : -1));
-      const now = new Date();
-      const filtered = sorted.filter((e) => {
-        if (range === "all") return true;
-        if (range === "recent") {
-          const cutoff = new Date(now);
-          cutoff.setDate(cutoff.getDate() - 42); // ~6 weeks
-          return new Date(e.date) >= cutoff;
-        }
-        if (/^\d{4}$/.test(range)) return e.date.startsWith(range);
-        return true;
-      });
-      if (filtered.length === 0) {
-        return (
-          <article>
-            <p className="lead">Pending.</p>
-            <p>Updated when there's something worth saving.</p>
-          </article>
-        );
-      }
+    // ---------- WORK ----------
+    case "work-stue":
       return (
-        <article className="log-list">
-          {filtered.map((e) => (
-            <section key={e.date} className="log-entry">
-              <h2 className="log-date">{formatLogDate(e.date)}</h2>
-              <div className="log-body">{e.body}</div>
-            </section>
-          ))}
+        <article>
+          <p className="lead">A shared home for your flat.</p>
+          <p>Shopping, cleaning, and money — together, quietly. An app for the day-to-day in a shared flat.</p>
+          <dl className="contact-list">
+            <dt>Role</dt><dd>Design + development</dd>
+            <dt>Status</dt><dd>In progress · no public link yet</dd>
+          </dl>
         </article>
       );
-    }
+    case "work-bullneck":
+      return (
+        <article>
+          <p className="lead">Bullneck Ballerina — Berlin post-punk.</p>
+          <p>Designed and developed the band's site.</p>
+          <dl className="contact-list">
+            <dt>Role</dt><dd>Design + development</dd>
+            <dt>Live</dt><dd><a href="https://bullneckballerino.com" target="_blank" rel="noreferrer">bullneckballerino.com ↗</a></dd>
+          </dl>
+        </article>
+      );
+    case "work-t3shop":
+      return (
+        <article>
+          <p className="lead">t3shop.no</p>
+          <p>Designed and developed a custom Shopify Liquid theme.</p>
+          <dl className="contact-list">
+            <dt>Role</dt><dd>Design + development</dd>
+            <dt>Stack</dt><dd>Shopify Liquid</dd>
+            <dt>Live</dt><dd><a href="https://t3shop.no" target="_blank" rel="noreferrer">t3shop.no ↗</a></dd>
+          </dl>
+        </article>
+      );
 
     default:
       return <article><p>Coming soon.</p></article>;
   }
-}
-
-// "2026-05-11" → "Mon 11 May 2026". Locale-stable, no surprises on other browsers.
-function formatLogDate(iso) {
-  const d = new Date(iso + "T00:00:00");
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 }
 
 // Card tilt — max rotation in degrees. Keep low; this should read as "the
