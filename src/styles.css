@@ -1160,6 +1160,58 @@ html, body, #root {
   .lb-count { bottom: 14px; }
 }
 
+/* ═══ WORK BADGE ═══
+   iOS-style rounded square mark that identifies each project. The "glass"
+   layering is what keeps it from looking stamped:
+   - Soft thin border defines the edge without hard contrast
+   - Inset top highlight reads as a rim light catching the glass
+   - Linear-gradient overlay (white-fading-to-translucent) gives shine
+   - Outer drop shadow + a subtle ambient haze beneath roots it on the surface
+*/
+.cp-body .work-badge {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 0 0 1.4em;
+  background: var(--surf-card);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  /* Stacked shadows: rim highlight + drop shadow + diffuse ambient halo */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 8px 24px rgba(0, 0, 0, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.20),
+    0 0 28px rgba(255, 255, 255, 0.04);
+}
+.cp-body .work-badge img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Glass shine overlay — bright top fades to nothing, faint dark wash at the
+   bottom. Sits over the favicon so the icon blends with the lighting of the
+   panel instead of feeling cut out and pasted on. */
+.cp-body .work-badge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.04) 26%,
+    rgba(255, 255, 255, 0) 48%,
+    rgba(0, 0, 0, 0.06) 86%,
+    rgba(0, 0, 0, 0.10) 100%);
+  mix-blend-mode: overlay;
+}
+
+@media (max-width: 600px) {
+  .cp-body .work-badge { width: 60px; height: 60px; border-radius: 14px; margin-bottom: 1.1em; }
+}
+
 /* ═══ WORK / PORTFOLIO SHOTS ═══
    Single hero screenshot (`.work-shot`) and 3-column row of mobile screens
    (`.work-shots-3up`). Both reuse the same border + radius as Pictures media. */

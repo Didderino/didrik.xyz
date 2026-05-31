@@ -591,6 +591,18 @@ function useImageClick() {
   }, [lb]);
 }
 
+// Glassy favicon badge that sits at the top of each Work panel — gives the
+// project a visual identity beyond just text. The glass effect is layered over
+// the favicon (rounded mask + rim highlight + soft overlay) so it never reads
+// as a flat sticker.
+function WorkBadge({ src, alt }) {
+  return (
+    <div className="work-badge" aria-hidden="true">
+      <img src={src} alt={alt} loading="lazy" />
+    </div>
+  );
+}
+
 // Single hero image — opens a 1-item lightbox (no prev/next).
 function WorkShotHero({ src, alt }) {
   const onImg = useImageClick();
@@ -920,6 +932,7 @@ function ContentBody({ kind, item }) {
     case "work-stue":
       return (
         <article>
+          <WorkBadge src="/img/work-stue/favicon.png" alt="stue mark" />
           <WorkShots3Up images={[
             { src: "/img/work-stue/01.jpg", alt: "stue — landing" },
             { src: "/img/work-stue/02.jpg", alt: "stue — dashboard" },
@@ -936,6 +949,7 @@ function ContentBody({ kind, item }) {
     case "work-bullneck":
       return (
         <article>
+          <WorkBadge src="/img/work-bullneck/favicon.png" alt="Bullneck Ballerina mark" />
           <WorkShotHero src="/img/work-bullneck/01.jpg" alt="Bullneck Ballerina — site hero" />
           <p className="lead">Bullneck Ballerina — Berlin post-punk.</p>
           <p>Designed and developed the band's site.</p>
@@ -948,6 +962,7 @@ function ContentBody({ kind, item }) {
     case "work-t3shop":
       return (
         <article>
+          <WorkBadge src="/img/work-t3shop/favicon.png" alt="t3shop mark" />
           <WorkShotHero src="/img/work-t3shop/01.jpg" alt="t3shop.no — product grid" />
           <p className="lead">t3shop.no</p>
           <p>Designed and developed a custom Shopify Liquid theme.</p>
