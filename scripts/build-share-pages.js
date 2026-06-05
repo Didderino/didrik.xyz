@@ -18,7 +18,7 @@ const ORIGIN = "https://didrik.xyz";
 
 const SHARE_ITEMS = [
   // Work
-  { slug: "stue",       kind: "Projects", title: "stue",                subtitle: "A shared home for your flat",      badge: "/img/work-stue/favicon.png",      itemId: "w-stue" },
+  { slug: "stue",       kind: "Projects", title: "stue",                subtitle: "A shared home for your flat · stue.space",  badge: "/img/work-stue/favicon.png",      itemId: "w-stue" },
   { slug: "bullneck",   kind: "Projects", title: "Bullneck Ballerina",  subtitle: "Berlin post-punk · website",       badge: "/img/work-bullneck/favicon.png",  itemId: "w-bullneck" },
   { slug: "t3shop",     kind: "Projects", title: "t3shop",              subtitle: "Custom Shopify Liquid theme",      badge: "/img/work-t3shop/favicon.png",    itemId: "w-t3shop" },
   // Photos

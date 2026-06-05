@@ -30,7 +30,7 @@ const CATEGORIES = [
     items: [
       // `badge` overrides the category icon in the menu list — each work item
       // shows its own favicon under a small glassy frame instead of the iMac glyph.
-      { id: "w-stue",      title: "stue",                subtitle: "A shared home for your flat · WIP", body: "work-stue",     badge: "/img/work-stue/favicon.png" },
+      { id: "w-stue",      title: "stue",                subtitle: "A shared home for your flat · live",  body: "work-stue",     badge: "/img/work-stue/favicon.png" },
       { id: "w-bullneck",  title: "Bullneck Ballerina",  subtitle: "Website · Berlin post-punk",        body: "work-bullneck", badge: "/img/work-bullneck/favicon.png" },
       { id: "w-t3shop",    title: "t3shop",              subtitle: "Website · Shopify Liquid",          body: "work-t3shop",   badge: "/img/work-t3shop/favicon.png" },
     ],
@@ -1038,7 +1038,8 @@ function ContentBody({ kind, item }) {
           <p>Shopping, cleaning, and money — together, quietly. An app for the day-to-day in a shared flat.</p>
           <dl className="contact-list">
             <dt>Role</dt><dd>Design + development</dd>
-            <dt>Status</dt><dd>In progress · no public link yet</dd>
+            <dt>Status</dt><dd>v1 · live</dd>
+            <dt>Live</dt><dd><a href="https://stue.space" target="_blank" rel="noreferrer">stue.space ↗</a></dd>
           </dl>
         </article>
       );
