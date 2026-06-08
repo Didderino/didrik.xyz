@@ -1051,7 +1051,7 @@ function ContentBody({ kind, item }) {
           <p>Designed and developed the band's site.</p>
           <dl className="contact-list">
             <dt>Role</dt><dd>Design + development</dd>
-            <dt>Live</dt><dd><a href="https://bullneckballerino.com" target="_blank" rel="noreferrer">bullneckballerino.com ↗</a></dd>
+            <dt>Live</dt><dd><a href="https://bullneckballerina.com" target="_blank" rel="noreferrer">bullneckballerina.com ↗</a></dd>
           </dl>
         </article>
       );
